@@ -6,7 +6,7 @@ Application for Must EP30 Pro Charger/Inverter, that allows integrate it into Ho
 1. Install dependencies using `pip`:
 
 ```sh
-# pip install paho-mqtt pyserial
+$ pip install paho-mqtt pyserial
 ```
    
 2. Check out and install the latest source code
@@ -20,7 +20,7 @@ $ cd ep30_pro_mqtt/
 ### Running with CLI:
 
 ```sh
-$ python mqtt.py [-v] [-h] SERIAL_PORT MQTT_BROKER_HOSTNAME
+$ python mqtt.py [-u MQTT_USERNAME] [-u MQTT_PASSWORD] [-v] [-h] SERIAL_PORT MQTT_BROKER_HOSTNAME
 ```
 
 Linux example

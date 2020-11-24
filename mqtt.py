@@ -7,6 +7,8 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("port")
 parser.add_argument("mqtt_broker")
+parser.add_argument("-u", "--mqtt_username")
+parser.add_argument("-p", "--mqtt_password")
 parser.add_argument("-v", "--verbose", help="turn on verbosity", action="store_true")
 args = parser.parse_args()
 
@@ -14,6 +16,13 @@ verboseprint = print if args.verbose else lambda *a, **k: None
 
 sleep_time = 10
 pause_time = 3
+
+auth = None
+if args.mqtt_username and args.mqtt_password:
+    auth = {
+        'username': args.mqtt_username,
+        'password': args.mqtt_password
+    }
 
 
 def topic(name, component='sensor'):
@@ -87,7 +96,7 @@ while True:
             },
         ]
 
-        publish.multiple(details_config_messages, args.mqtt_broker)
+        publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
 
         messages = [
             {
@@ -108,7 +117,7 @@ while True:
             },
         ]
 
-        publish.multiple(messages, hostname=args.mqtt_broker)
+        publish.multiple(msgs=messages, hostname=args.mqtt_broker, auth=auth)
 
     time.sleep(pause_time)
 
@@ -264,7 +273,7 @@ while True:
             },
         ]
 
-        publish.multiple(config_messages, args.mqtt_broker)
+        publish.multiple(msgs=config_messages, hostname=args.mqtt_broker, auth=auth)
 
         messages = [
             {
@@ -329,7 +338,7 @@ while True:
             },
         ]
 
-        publish.multiple(messages, hostname=args.mqtt_broker)
+        publish.multiple(msgs=messages, hostname=args.mqtt_broker, auth=auth)
 
     time.sleep(pause_time)
 
@@ -356,9 +365,9 @@ while True:
             }
         ]
 
-        publish.multiple(details_config_messages, args.mqtt_broker)
+        publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
 
-        publish.single(topic('message/state'), str(message_data), hostname=args.mqtt_broker)
+        publish.single(topic=topic('message/state'), payload=str(message_data), hostname=args.mqtt_broker, auth=auth)
 
     time.sleep(pause_time)
 
@@ -388,10 +397,10 @@ while True:
                 }
             ]
 
-            publish.multiple(details_config_messages, args.mqtt_broker)
+            publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
 
-            publish.single(topic('is_charging/state', 'binary_sensor'), str(is_charging_data),
-                           hostname=args.mqtt_broker)
+            publish.single(topic=topic('is_charging/state', 'binary_sensor'), payload=str(is_charging_data),
+                           hostname=args.mqtt_broker, auth=auth)
 
     time.sleep(pause_time)
 
@@ -424,9 +433,10 @@ while True:
                 }
             ]
 
-            publish.multiple(details_config_messages, args.mqtt_broker)
+            publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
 
-            publish.single(topic('charging_current/state'), str(charging_current), hostname=args.mqtt_broker)
+            publish.single(topic=topic('charging_current/state'), payload=str(charging_current),
+                           hostname=args.mqtt_broker, auth=auth)
 
     time.sleep(pause_time)
 
