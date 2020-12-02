@@ -37,6 +37,20 @@ def friendly_name(sensor_name, prefix='', suffix=''):
     return prefix + sensor_name + suffix
 
 
+def publish_multiple(msgs):
+    try:
+        publish.multiple(msgs=msgs, hostname=args.mqtt_broker, auth=auth)
+    except Exception as e:
+        print(e)
+
+
+def publish_single(topic, payload):
+    try:
+        publish.single(topic=topic, payload=payload, hostname=args.mqtt_broker, auth=auth)
+    except Exception as e:
+        print(e)
+
+
 while True:
     ser = serial.Serial(args.port, 2400, timeout=10)
 
@@ -96,7 +110,7 @@ while True:
             },
         ]
 
-        publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
+        publish_multiple(details_config_messages)
 
         messages = [
             {
@@ -117,7 +131,7 @@ while True:
             },
         ]
 
-        publish.multiple(msgs=messages, hostname=args.mqtt_broker, auth=auth)
+        publish_multiple(messages)
 
     time.sleep(pause_time)
 
@@ -273,7 +287,7 @@ while True:
             },
         ]
 
-        publish.multiple(msgs=config_messages, hostname=args.mqtt_broker, auth=auth)
+        publish_multiple(config_messages)
 
         messages = [
             {
@@ -338,7 +352,7 @@ while True:
             },
         ]
 
-        publish.multiple(msgs=messages, hostname=args.mqtt_broker, auth=auth)
+        publish_multiple(messages)
 
     time.sleep(pause_time)
 
@@ -365,9 +379,9 @@ while True:
             }
         ]
 
-        publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
+        publish_multiple(details_config_messages)
 
-        publish.single(topic=topic('message/state'), payload=str(message_data), hostname=args.mqtt_broker, auth=auth)
+        publish_single(topic=topic('message/state'), payload=str(message_data))
 
     time.sleep(pause_time)
 
@@ -397,10 +411,9 @@ while True:
                 }
             ]
 
-            publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
+            publish_multiple(msgs=details_config_messages)
 
-            publish.single(topic=topic('is_charging/state', 'binary_sensor'), payload=str(is_charging_data),
-                           hostname=args.mqtt_broker, auth=auth)
+            publish_single(topic=topic('is_charging/state', 'binary_sensor'), payload=str(is_charging_data))
 
     time.sleep(pause_time)
 
@@ -433,10 +446,9 @@ while True:
                 }
             ]
 
-            publish.multiple(msgs=details_config_messages, hostname=args.mqtt_broker, auth=auth)
+            publish_multiple(msgs=details_config_messages)
 
-            publish.single(topic=topic('charging_current/state'), payload=str(charging_current),
-                           hostname=args.mqtt_broker, auth=auth)
+            publish_single(topic=topic('charging_current/state'), payload=str(charging_current))
 
     time.sleep(pause_time)
 
