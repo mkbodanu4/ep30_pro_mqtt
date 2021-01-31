@@ -2,13 +2,13 @@ import paho.mqtt.publish as publish
 import serial
 import time
 import json
+import yaml
 import argparse
 
+with open("configuration.yaml", 'r') as stream:
+    configuration = yaml.safe_load(stream)
+
 parser = argparse.ArgumentParser()
-parser.add_argument("port")
-parser.add_argument("mqtt_broker")
-parser.add_argument("-u", "--mqtt_username")
-parser.add_argument("-p", "--mqtt_password")
 parser.add_argument("-v", "--verbose", help="turn on verbosity", action="store_true")
 args = parser.parse_args()
 
@@ -17,11 +17,12 @@ verboseprint = print if args.verbose else lambda *a, **k: None
 sleep_time = 10
 pause_time = 3
 
+hostname = configuration['mqtt']['hostname']
 auth = None
-if args.mqtt_username and args.mqtt_password:
+if configuration['mqtt']['username'] and configuration['mqtt']['password']:
     auth = {
-        'username': args.mqtt_username,
-        'password': args.mqtt_password
+        'username': configuration['mqtt']['username'],
+        'password': configuration['mqtt']['password']
     }
 
 
@@ -39,20 +40,20 @@ def friendly_name(sensor_name, prefix='', suffix=''):
 
 def publish_multiple(msgs):
     try:
-        publish.multiple(msgs=msgs, hostname=args.mqtt_broker, auth=auth)
+        publish.multiple(msgs=msgs, hostname=hostname, auth=auth)
     except Exception as e:
         print(e)
 
 
 def publish_single(topic, payload):
     try:
-        publish.single(topic=topic, payload=payload, hostname=args.mqtt_broker, auth=auth)
+        publish.single(topic=topic, payload=payload, hostname=hostname, auth=auth)
     except Exception as e:
         print(e)
 
 
 while True:
-    ser = serial.Serial(args.port, 2400, timeout=10)
+    ser = serial.Serial(configuration['serial']['port'], 2400, timeout=10)
 
     # F
 

@@ -1,0 +1,7 @@
+serial:
+  port: '/dev/ttyUSB0'
+
+mqtt:
+  hostname: '192.168.1.1'
+  username: 'usr'
+  password: 'passwd'

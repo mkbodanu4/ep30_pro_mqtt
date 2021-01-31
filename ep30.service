@@ -1,0 +1,12 @@
+[Unit]
+Description=Service for publishing EP3000 Pro Inverter-Charger state to MQTT
+After=multi-user.target mosquitto.service
+
+[Service]
+WorkingDirectory=/home/user/ep30_pro_mqtt
+Type=idle
+ExecStart=/usr/bin/python3 /home/user/ep30_pro_mqtt/mqtt.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
