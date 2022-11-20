@@ -39,11 +39,12 @@ shutdown_active = None
 beeper_on = None
 message_data = None
 is_charging_data = None
-charging_data = None
+charging_current = None
 
 # Calculated sensors
 battery_level = None
 output_power = None
+input_power = None
 
 hostname = configuration['mqtt']['hostname']
 auth = None
@@ -123,6 +124,7 @@ while True:
                 "name": name("Input Voltage"),
                 "device_class": "voltage",
                 "unit_of_measurement": "V",
+                "state_class": "measurement",
                 "state_topic": topic('input_voltage/state'),
             })
         },
@@ -132,6 +134,7 @@ while True:
                 "name": name("Fault Voltage"),
                 "device_class": "voltage",
                 "unit_of_measurement": "V",
+                "state_class": "measurement",
                 "state_topic": topic('fault_voltage/state'),
             })
         },
@@ -141,6 +144,7 @@ while True:
                 "name": name("Output Voltage"),
                 "device_class": "voltage",
                 "unit_of_measurement": "V",
+                "state_class": "measurement",
                 "state_topic": topic('output_voltage/state'),
             })
         },
@@ -149,6 +153,7 @@ while True:
             'payload': json.dumps({
                 "name": name("Load Level"),
                 "unit_of_measurement": "%",
+                "state_class": "measurement",
                 "state_topic": topic('load_level/state'),
             })
         },
@@ -157,6 +162,7 @@ while True:
             'payload': json.dumps({
                 "name": name("Output Frequency"),
                 "unit_of_measurement": "Hz",
+                "state_class": "measurement",
                 "state_topic": topic('output_frequency/state'),
             })
         },
@@ -166,6 +172,7 @@ while True:
                 "name": name("Battery Voltage"),
                 "device_class": "voltage",
                 "unit_of_measurement": "V",
+                "state_class": "measurement",
                 "state_topic": topic('battery_voltage/state'),
             })
         },
@@ -249,6 +256,7 @@ while True:
             'payload': json.dumps({
                 "name": name("Charger Action"),
                 "device_class": "battery_charging",
+                "state_class": "measurement",
                 "state_topic": topic('is_charging/state', 'binary_sensor'),
             })
         },
@@ -258,6 +266,7 @@ while True:
                 "name": name("Charging Current"),
                 "device_class": "current",
                 "unit_of_measurement": "A",
+                "state_class": "measurement",
                 "state_topic": topic('charging_current/state'),
             })
         },
@@ -267,6 +276,7 @@ while True:
                 "name": name("Battery Level"),
                 "device_class": "battery",
                 "unit_of_measurement": "%",
+                "state_class": "measurement",
                 "state_topic": topic('battery_level/state'),
             })
         },
@@ -276,7 +286,18 @@ while True:
                 "name": name("Output Power"),
                 "device_class": "power",
                 "unit_of_measurement": "W",
+                "state_class": "measurement",
                 "state_topic": topic('output_power/state'),
+            })
+        },
+        {
+            'topic': topic('input_power/config'),
+            'payload': json.dumps({
+                "name": name("Input Power"),
+                "device_class": "power",
+                "unit_of_measurement": "W",
+                "state_class": "measurement",
+                "state_topic": topic('input_power/state'),
             })
         },
     ]
@@ -498,3 +519,8 @@ while True:
             battery_level = int((float(battery_voltage) - float(configuration['invertor_config']['empty_voltage'])) / (float(configuration['invertor_config']['full_voltage']) - float(configuration['invertor_config']['empty_voltage'])) * 100)
 
         publish_single(topic=topic('battery_level/state'), payload=str(battery_level))
+
+    if battery_voltage is not None and charging_current is not None:
+        input_power = int(float(battery_voltage) * float(charging_current))
+
+        publish_single(topic=topic('input_power/state'), payload=str(input_power))
