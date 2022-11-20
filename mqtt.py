@@ -81,10 +81,6 @@ def publish_single(topic, payload):
 
 
 while True:
-    time.sleep(sleep_time)
-
-    ser = serial.Serial(configuration['serial']['port'], 2400, timeout=10)
-
     sensors_definitions = [
         {
             'topic': topic('rating_voltage/config'),
@@ -287,6 +283,10 @@ while True:
 
     publish_multiple(sensors_definitions)
 
+    time.sleep(sleep_time)
+
+    ser = serial.Serial(configuration['serial']['port'], 2400, timeout=10)
+
     # F
 
     ser.reset_input_buffer()
@@ -482,10 +482,12 @@ while True:
 
     time.sleep(pause_time)
 
+    ser.close()
+
     # Calculating sensor values
 
     if rating_current is not None and load_level is not None and output_voltage is not None:
-        output_power = int(float(rating_current) * float(load_level) * float(output_voltage))
+        output_power = int(float(rating_current) * (float(load_level) / 100) * float(output_voltage))
 
         publish_single(topic=topic('output_power/state'), payload=str(output_power))
 
@@ -496,5 +498,3 @@ while True:
             battery_level = int((float(battery_voltage) - float(configuration['invertor_config']['empty_voltage'])) / (float(configuration['invertor_config']['full_voltage']) - float(configuration['invertor_config']['empty_voltage'])) * 100)
 
         publish_single(topic=topic('battery_level/state'), payload=str(battery_level))
-
-    ser.close()
