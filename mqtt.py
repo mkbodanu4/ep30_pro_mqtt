@@ -14,8 +14,36 @@ args = parser.parse_args()
 
 verboseprint = print if args.verbose else lambda *a, **k: None
 
-sleep_time = 10
-pause_time = 3
+sleep_time = configuration['run']['sleep_time']
+pause_time = configuration['run']['pause_time']
+
+# Available sensors
+rating_voltage = None
+rating_current = None
+nominal_battery_voltage = None
+nominal_frequency = None
+input_voltage = None
+fault_voltage = None
+output_voltage = None
+load_level = None
+output_frequency = None
+battery_voltage = None
+ups_temperature = None
+utility_fail = None
+battery_low = None
+working_status = None
+ups_failed = None
+ups_type = None
+test_in_progress = None
+shutdown_active = None
+beeper_on = None
+message_data = None
+is_charging_data = None
+charging_data = None
+
+# Calculated sensors
+battery_level = None
+output_power = None
 
 hostname = configuration['mqtt']['hostname']
 auth = None
@@ -53,7 +81,211 @@ def publish_single(topic, payload):
 
 
 while True:
+    time.sleep(sleep_time)
+
     ser = serial.Serial(configuration['serial']['port'], 2400, timeout=10)
+
+    sensors_definitions = [
+        {
+            'topic': topic('rating_voltage/config'),
+            'payload': json.dumps({
+                "name": name("Rating Voltage"),
+                "device_class": "voltage",
+                "unit_of_measurement": "V",
+                "state_topic": topic('rating_voltage/state'),
+            })
+        },
+        {
+            'topic': topic('rating_current/config'),
+            'payload': json.dumps({
+                "name": name("Rating Current"),
+                "device_class": "current",
+                "unit_of_measurement": "A",
+                "state_topic": topic('rating_current/state'),
+            })
+        },
+        {
+            'topic': topic('nominal_battery_voltage/config'),
+            'payload': json.dumps({
+                "name": name("Nominal Battery Voltage"),
+                "device_class": "voltage",
+                "unit_of_measurement": "V",
+                "state_topic": topic('nominal_battery_voltage/state'),
+            })
+        },
+        {
+            'topic': topic('nominal_frequency/config'),
+            'payload': json.dumps({
+                "name": name("Nominal Frequency"),
+                "unit_of_measurement": "Hz",
+                "state_topic": topic('nominal_frequency/state'),
+            })
+        },
+        {
+            'topic': topic('input_voltage/config'),
+            'payload': json.dumps({
+                "name": name("Input Voltage"),
+                "device_class": "voltage",
+                "unit_of_measurement": "V",
+                "state_topic": topic('input_voltage/state'),
+            })
+        },
+        {
+            'topic': topic('fault_voltage/config'),
+            'payload': json.dumps({
+                "name": name("Fault Voltage"),
+                "device_class": "voltage",
+                "unit_of_measurement": "V",
+                "state_topic": topic('fault_voltage/state'),
+            })
+        },
+        {
+            'topic': topic('output_voltage/config'),
+            'payload': json.dumps({
+                "name": name("Output Voltage"),
+                "device_class": "voltage",
+                "unit_of_measurement": "V",
+                "state_topic": topic('output_voltage/state'),
+            })
+        },
+        {
+            'topic': topic('load_level/config'),
+            'payload': json.dumps({
+                "name": name("Load Level"),
+                "unit_of_measurement": "%",
+                "state_topic": topic('load_level/state'),
+            })
+        },
+        {
+            'topic': topic('output_frequency/config'),
+            'payload': json.dumps({
+                "name": name("Output Frequency"),
+                "unit_of_measurement": "Hz",
+                "state_topic": topic('output_frequency/state'),
+            })
+        },
+        {
+            'topic': topic('battery_voltage/config'),
+            'payload': json.dumps({
+                "name": name("Battery Voltage"),
+                "device_class": "voltage",
+                "unit_of_measurement": "V",
+                "state_topic": topic('battery_voltage/state'),
+            })
+        },
+        {
+            'topic': topic('ups_temperature/config'),
+            'payload': json.dumps({
+                "name": name("Temperature"),
+                "device_class": "temperature",
+                "unit_of_measurement": "°C",
+                "state_topic": topic('ups_temperature/state'),
+            })
+        },
+        {
+            'topic': topic('utility_fail/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("Utility Fail (Immediate)"),
+                "device_class": "power",
+                "state_topic": topic('utility_fail/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('battery_low/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("Battery Low"),
+                "device_class": "battery",
+                "state_topic": topic('battery_low/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('working_status/config'),
+            'payload': json.dumps({
+                "name": name("Working Status"),
+                "state_topic": topic('working_status/state'),
+            })
+        },
+        {
+            'topic': topic('ups_failed/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("UPS Failed"),
+                "device_class": "problem",
+                "state_topic": topic('ups_failed/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('ups_type/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("Type is Line-Interactive"),
+                "state_topic": topic('ups_type/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('test_in_progress/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("Test in progress"),
+                "state_topic": topic('test_in_progress/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('shutdown_active/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("Shutdown Active"),
+                "state_topic": topic('shutdown_active/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('beeper_on/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("Beeper On"),
+                "state_topic": topic('beeper_on/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('message/config'),
+            'payload': json.dumps({
+                "name": name("Fault State"),
+                "state_topic": topic('message/state'),
+            })
+        },
+        {
+            'topic': topic('is_charging/config', 'binary_sensor'),
+            'payload': json.dumps({
+                "name": name("Charger Action"),
+                "device_class": "battery_charging",
+                "state_topic": topic('is_charging/state', 'binary_sensor'),
+            })
+        },
+        {
+            'topic': topic('charging_current/config'),
+            'payload': json.dumps({
+                "name": name("Charging Current"),
+                "device_class": "current",
+                "unit_of_measurement": "A",
+                "state_topic": topic('charging_current/state'),
+            })
+        },
+        {
+            'topic': topic('battery_level/config'),
+            'payload': json.dumps({
+                "name": name("Battery Level"),
+                "device_class": "battery",
+                "unit_of_measurement": "%",
+                "state_topic": topic('battery_level/state'),
+            })
+        },
+        {
+            'topic': topic('output_power/config'),
+            'payload': json.dumps({
+                "name": name("Output Power"),
+                "device_class": "power",
+                "unit_of_measurement": "W",
+                "state_topic": topic('output_power/state'),
+            })
+        },
+    ]
+
+    publish_multiple(sensors_definitions)
 
     # F
 
@@ -72,46 +304,6 @@ while True:
         rating_current = float(details_data[7:10])
         nominal_battery_voltage = float(details_data[11:16])
         nominal_frequency = float(details_data[17:21])
-
-        details_config_messages = [
-            {
-                'topic': topic('rating_voltage/config'),
-                'payload': json.dumps({
-                    "name": name("Rating Voltage"),
-                    "device_class": "voltage",
-                    "unit_of_measurement": "V",
-                    "state_topic": topic('rating_voltage/state'),
-                })
-            },
-            {
-                'topic': topic('rating_current/config'),
-                'payload': json.dumps({
-                    "name": name("Rating Current"),
-                    "device_class": "current",
-                    "unit_of_measurement": "A",
-                    "state_topic": topic('rating_current/state'),
-                })
-            },
-            {
-                'topic': topic('nominal_battery_voltage/config'),
-                'payload': json.dumps({
-                    "name": name("Nominal Battery Voltage"),
-                    "device_class": "voltage",
-                    "unit_of_measurement": "V",
-                    "state_topic": topic('nominal_battery_voltage/state'),
-                })
-            },
-            {
-                'topic': topic('nominal_frequency/config'),
-                'payload': json.dumps({
-                    "name": name("Nominal Frequency"),
-                    "unit_of_measurement": "Hz",
-                    "state_topic": topic('nominal_frequency/state'),
-                })
-            },
-        ]
-
-        publish_multiple(details_config_messages)
 
         messages = [
             {
@@ -164,131 +356,6 @@ while True:
         test_in_progress = int(data[43:44])
         shutdown_active = int(data[44:45])
         beeper_on = int(data[45:46])
-
-        config_messages = [
-            {
-                'topic': topic('input_voltage/config'),
-                'payload': json.dumps({
-                    "name": name("Input Voltage"),
-                    "device_class": "voltage",
-                    "unit_of_measurement": "V",
-                    "state_topic": topic('input_voltage/state'),
-                })
-            },
-            {
-                'topic': topic('fault_voltage/config'),
-                'payload': json.dumps({
-                    "name": name("Fault Voltage"),
-                    "device_class": "voltage",
-                    "unit_of_measurement": "V",
-                    "state_topic": topic('fault_voltage/state'),
-                })
-            },
-            {
-                'topic': topic('output_voltage/config'),
-                'payload': json.dumps({
-                    "name": name("Output Voltage"),
-                    "device_class": "voltage",
-                    "unit_of_measurement": "V",
-                    "state_topic": topic('output_voltage/state'),
-                })
-            },
-            {
-                'topic': topic('load_level/config'),
-                'payload': json.dumps({
-                    "name": name("Load Level"),
-                    "unit_of_measurement": "%",
-                    "state_topic": topic('load_level/state'),
-                })
-            },
-            {
-                'topic': topic('output_frequency/config'),
-                'payload': json.dumps({
-                    "name": name("Output Frequency"),
-                    "unit_of_measurement": "Hz",
-                    "state_topic": topic('output_frequency/state'),
-                })
-            },
-            {
-                'topic': topic('battery_voltage/config'),
-                'payload': json.dumps({
-                    "name": name("Battery Voltage"),
-                    "device_class": "voltage",
-                    "unit_of_measurement": "V",
-                    "state_topic": topic('battery_voltage/state'),
-                })
-            },
-            {
-                'topic': topic('ups_temperature/config'),
-                'payload': json.dumps({
-                    "name": name("Temperature"),
-                    "device_class": "temperature",
-                    "unit_of_measurement": "°C",
-                    "state_topic": topic('ups_temperature/state'),
-                })
-            },
-            {
-                'topic': topic('utility_fail/config', 'binary_sensor'),
-                'payload': json.dumps({
-                    "name": name("Utility Fail (Immediate)"),
-                    "device_class": "power",
-                    "state_topic": topic('utility_fail/state', 'binary_sensor'),
-                })
-            },
-            {
-                'topic': topic('battery_low/config', 'binary_sensor'),
-                'payload': json.dumps({
-                    "name": name("Battery Low"),
-                    "device_class": "battery",
-                    "state_topic": topic('battery_low/state', 'binary_sensor'),
-                })
-            },
-            {
-                'topic': topic('working_status/config'),
-                'payload': json.dumps({
-                    "name": name("Working Status"),
-                    "state_topic": topic('working_status/state'),
-                })
-            },
-            {
-                'topic': topic('ups_failed/config', 'binary_sensor'),
-                'payload': json.dumps({
-                    "name": name("UPS Failed"),
-                    "device_class": "problem",
-                    "state_topic": topic('ups_failed/state', 'binary_sensor'),
-                })
-            },
-            {
-                'topic': topic('ups_type/config', 'binary_sensor'),
-                'payload': json.dumps({
-                    "name": name("Type is Line-Interactive"),
-                    "state_topic": topic('ups_type/state', 'binary_sensor'),
-                })
-            },
-            {
-                'topic': topic('test_in_progress/config', 'binary_sensor'),
-                'payload': json.dumps({
-                    "name": name("Test in progress"),
-                    "state_topic": topic('test_in_progress/state', 'binary_sensor'),
-                })
-            },
-            {
-                'topic': topic('shutdown_active/config', 'binary_sensor'),
-                'payload': json.dumps({
-                    "name": name("Shutdown Active"),
-                    "state_topic": topic('shutdown_active/state', 'binary_sensor'),
-                })
-            },
-            {
-                'topic': topic('beeper_on/config', 'binary_sensor'),
-                'payload': json.dumps({
-                    "name": name("Beeper On"),
-                    "state_topic": topic('beeper_on/state', 'binary_sensor'),
-                })
-            },
-        ]
-
-        publish_multiple(config_messages)
 
         messages = [
             {
@@ -370,18 +437,6 @@ while True:
         message_data = message_data.decode("utf-8")
         verboseprint(message_data)
 
-        details_config_messages = [
-            {
-                'topic': topic('message/config'),
-                'payload': json.dumps({
-                    "name": name("Fault State"),
-                    "state_topic": topic('message/state'),
-                })
-            }
-        ]
-
-        publish_multiple(details_config_messages)
-
         publish_single(topic=topic('message/state'), payload=str(message_data))
 
     time.sleep(pause_time)
@@ -401,18 +456,6 @@ while True:
 
         if is_charging_data:
             is_charging_data = "ON" if is_charging_data == 'ACK' else "OFF"
-            details_config_messages = [
-                {
-                    'topic': topic('is_charging/config', 'binary_sensor'),
-                    'payload': json.dumps({
-                        "name": name("Charger Action"),
-                        "device_class": "battery_charging",
-                        "state_topic": topic('is_charging/state', 'binary_sensor'),
-                    })
-                }
-            ]
-
-            publish_multiple(msgs=details_config_messages)
 
             publish_single(topic=topic('is_charging/state', 'binary_sensor'), payload=str(is_charging_data))
 
@@ -435,24 +478,23 @@ while True:
         if charging_current:
             charging_current = float(int(charging_current, 16))
 
-            details_config_messages = [
-                {
-                    'topic': topic('charging_current/config'),
-                    'payload': json.dumps({
-                        "name": name("Charging Current"),
-                        "device_class": "current",
-                        "unit_of_measurement": "A",
-                        "state_topic": topic('charging_current/state'),
-                    })
-                }
-            ]
-
-            publish_multiple(msgs=details_config_messages)
-
             publish_single(topic=topic('charging_current/state'), payload=str(charging_current))
 
     time.sleep(pause_time)
 
-    ser.close()
+    # Calculating sensor values
 
-    time.sleep(sleep_time)
+    if rating_current is not None and load_level is not None and output_voltage is not None:
+        output_power = int(float(rating_current) * float(load_level) * float(output_voltage))
+
+        publish_single(topic=topic('output_power/state'), payload=str(output_power))
+
+    if battery_voltage is not None:
+        if float(battery_voltage) > float(configuration['invertor_config']['full_voltage']):
+            battery_level = 100
+        else:
+            battery_level = int((float(battery_voltage) - float(configuration['invertor_config']['empty_voltage'])) / (float(configuration['invertor_config']['full_voltage']) - float(configuration['invertor_config']['empty_voltage'])) * 100)
+
+        publish_single(topic=topic('battery_level/state'), payload=str(battery_level))
+
+    ser.close()
