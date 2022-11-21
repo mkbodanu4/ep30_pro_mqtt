@@ -10,8 +10,8 @@ discharge_config:
   empty_voltage: 10.5
 
 charge_config:
-  float_current: 2.0
-  full_voltage: 13.8
+  float_current: 6.0
+  full_voltage: 13.6
   boost_voltage: 14.4
   empty_voltage: 10.5
 

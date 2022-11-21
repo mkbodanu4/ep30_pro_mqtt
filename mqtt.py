@@ -55,6 +55,9 @@ if configuration['mqtt']['username'] and configuration['mqtt']['password']:
     }
 
 
+def rating_round(number):
+    return round((number * 2) / 2)
+
 def topic(name, component='sensor'):
     return 'homeassistant/' + component + '/ep30_' + name
 
@@ -508,27 +511,27 @@ while True:
     # Calculating sensor values
 
     if rating_current is not None and load_level is not None and output_voltage is not None:
-        output_power = int(round(float(rating_current) * (float(load_level) / 100) * float(output_voltage)))
+        output_power = rating_round(round(float(rating_current) * (float(load_level) / 100) * float(output_voltage), 1))
 
-        publish_single(topic=topic('output_power/state'), payload=str(output_power))
+        publish_single(topic=topic('output_power/state'), payload=str(round(output_power, 1)))
 
     if battery_voltage is not None and charging_current is not None:
         if is_charging == "ON":
-            input_power = int(round(float(battery_voltage) * float(charging_current)))
+            input_power = rating_round(round(float(battery_voltage) * float(charging_current), 1))
         else:
             input_power = 0
 
-        publish_single(topic=topic('input_power/state'), payload=str(input_power))
+        publish_single(topic=topic('input_power/state'), payload=str(round(input_power, 1)))
 
         if is_charging == "ON" and charging_current > float(configuration['charge_config']['float_current']):
             if float(battery_voltage) > float(configuration['charge_config']['full_voltage']):
-                battery_level = 95 + int(round((float(battery_voltage) - float(configuration['charge_config']['full_voltage'])) / (float(configuration['charge_config']['boost_voltage']) - float(configuration['charge_config']['full_voltage'])) * 5))
+                battery_level = 95.0 + rating_round(round((float(battery_voltage) - float(configuration['charge_config']['full_voltage'])) / (float(configuration['charge_config']['boost_voltage']) - float(configuration['charge_config']['full_voltage'])) * 5, 1))
             else:
-                battery_level = int(round((float(battery_voltage) - float(configuration['charge_config']['empty_voltage'])) / (float(configuration['charge_config']['full_voltage']) - float(configuration['charge_config']['empty_voltage'])) * 95))
+                battery_level = rating_round(round((float(battery_voltage) - float(configuration['charge_config']['empty_voltage'])) / (float(configuration['charge_config']['full_voltage']) - float(configuration['charge_config']['empty_voltage'])) * 95, 1))
         else:
             if float(battery_voltage) > float(configuration['discharge_config']['full_voltage']):
-                battery_level = 100
+                battery_level = 100.0
             else:
-                battery_level = int(round((float(battery_voltage) - float(configuration['discharge_config']['empty_voltage'])) / (float(configuration['discharge_config']['full_voltage']) - float(configuration['discharge_config']['empty_voltage'])) * 100))
+                battery_level = rating_round(round((float(battery_voltage) - float(configuration['discharge_config']['empty_voltage'])) / (float(configuration['discharge_config']['full_voltage']) - float(configuration['discharge_config']['empty_voltage'])) * 100, 1))
 
         publish_single(topic=topic('battery_level/state'), payload=str(battery_level))
