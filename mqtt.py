@@ -521,10 +521,7 @@ while True:
         publish_single(topic=topic('input_power/state'), payload=str(input_power))
 
         if is_charging == "ON" and charging_current > float(configuration['charge_config']['float_current']):
-            if float(battery_voltage) > float(configuration['charge_config']['full_voltage']):
-                battery_level = 100
-            else:
-                battery_level = int((float(battery_voltage) - float(configuration['charge_config']['empty_voltage'])) / (float(configuration['charge_config']['full_voltage']) - float(configuration['charge_config']['empty_voltage'])) * 100)
+            battery_level = int((float(battery_voltage) - float(configuration['charge_config']['empty_voltage'])) / (float(configuration['charge_config']['full_voltage']) - float(configuration['charge_config']['empty_voltage'])) * 100)
         else:
             if float(battery_voltage) > float(configuration['discharge_config']['full_voltage']):
                 battery_level = 100

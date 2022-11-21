@@ -11,7 +11,7 @@ discharge_config:
 
 charge_config:
   float_current: 2.0
-  full_voltage: 14.4
+  full_voltage: 13.8
   empty_voltage: 10.5
 
 mqtt:
