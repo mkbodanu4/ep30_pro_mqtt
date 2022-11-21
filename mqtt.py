@@ -522,7 +522,7 @@ while True:
 
         if is_charging == "ON" and charging_current > float(configuration['charge_config']['float_current']):
             if float(battery_voltage) > float(configuration['charge_config']['full_voltage']):
-                battery_level = 95
+                battery_level = 95 + int((float(battery_voltage) - float(configuration['charge_config']['full_voltage'])) / (float(configuration['charge_config']['boost_voltage']) - float(configuration['charge_config']['full_voltage'])) * 5)
             else:
                 battery_level = int((float(battery_voltage) - float(configuration['charge_config']['empty_voltage'])) / (float(configuration['charge_config']['full_voltage']) - float(configuration['charge_config']['empty_voltage'])) * 95)
         else:
