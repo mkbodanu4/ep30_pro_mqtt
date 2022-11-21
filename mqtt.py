@@ -38,7 +38,7 @@ test_in_progress = None
 shutdown_active = None
 beeper_on = None
 message_data = None
-is_charging_data = None
+is_charging = "OFF"
 charging_current = None
 
 # Calculated sensors
@@ -476,9 +476,9 @@ while True:
         verboseprint(is_charging_data)
 
         if is_charging_data:
-            is_charging_data = "ON" if is_charging_data == 'ACK' else "OFF"
+            is_charging = "ON" if is_charging_data == 'ACK' else "OFF"
 
-            publish_single(topic=topic('is_charging/state', 'binary_sensor'), payload=str(is_charging_data))
+            publish_single(topic=topic('is_charging/state', 'binary_sensor'), payload=str(is_charging))
 
     time.sleep(pause_time)
 
@@ -521,6 +521,9 @@ while True:
         publish_single(topic=topic('battery_level/state'), payload=str(battery_level))
 
     if battery_voltage is not None and charging_current is not None:
-        input_power = int(float(battery_voltage) * float(charging_current))
+        if is_charging == "ON":
+            input_power = int(float(battery_voltage) * float(charging_current))
+        else:
+            input_power = 0
 
         publish_single(topic=topic('input_power/state'), payload=str(input_power))
