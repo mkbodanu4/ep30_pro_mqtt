@@ -5,8 +5,13 @@ run:
   pause_time: 1
   sleep_time: 5
 
-invertor_config:
+discharge_config:
   full_voltage: 12.8
+  empty_voltage: 10.5
+
+charge_config:
+  float_current: 2.0
+  full_voltage: 14.4
   empty_voltage: 10.5
 
 mqtt:
