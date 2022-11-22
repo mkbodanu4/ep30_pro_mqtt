@@ -12,10 +12,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--verbose", help="turn on verbosity", action="store_true")
 args = parser.parse_args()
 
-verboseprint = print if args.verbose else lambda *a, **k: None
+verbose_print = print if args.verbose else lambda *a, **k: None
 
 sleep_time = configuration['run']['sleep_time']
-pause_time = configuration['run']['pause_time']
 
 # Available sensors
 rating_voltage = None
@@ -55,11 +54,8 @@ if configuration['mqtt']['username'] and configuration['mqtt']['password']:
     }
 
 
-def rating_round(number):
-    return round((number * 2) / 2)
-
-def topic(name, component='sensor'):
-    return 'homeassistant/' + component + '/ep30_' + name
+def topic(name_value, component='sensor'):
+    return 'homeassistant/' + component + '/ep30_' + name_value
 
 
 def name(sensor_name, prefix='EP30 ', suffix=''):
@@ -77,9 +73,9 @@ def publish_multiple(msgs):
         print(e)
 
 
-def publish_single(topic, payload):
+def publish_single(topic_value, payload):
     try:
-        publish.single(topic=topic, payload=payload, hostname=hostname, auth=auth)
+        publish.single(topic=topic_value, payload=payload, hostname=hostname, auth=auth)
     except Exception as e:
         print(e)
 
@@ -303,11 +299,33 @@ while True:
                 "state_topic": topic('input_power/state'),
             })
         },
+        {
+            'topic': topic('output_energy/config'),
+            'payload': json.dumps({
+                "name": name("Output Energy"),
+                "device_class": "energy",
+                "unit_of_measurement": "kWh",
+                "state_class": "total_increasing",
+                "state_topic": topic('output_energy/state'),
+            })
+        },
+        {
+            'topic': topic('input_energy/config'),
+            'payload': json.dumps({
+                "name": name("Input Energy"),
+                "device_class": "energy",
+                "unit_of_measurement": "kWh",
+                "state_class": "total_increasing",
+                "state_topic": topic('input_energy/state'),
+            })
+        },
     ]
 
     publish_multiple(sensors_definitions)
 
     time.sleep(sleep_time)
+
+    sensors_data = []
 
     ser = serial.Serial(configuration['serial']['port'], 2400, timeout=10)
 
@@ -322,35 +340,31 @@ while True:
 
     if details_data:
         details_data = details_data.decode("utf-8")
-        verboseprint(details_data)
+        verbose_print(details_data)
 
         rating_voltage = float(details_data[1:6])
         rating_current = float(details_data[7:10])
         nominal_battery_voltage = float(details_data[11:16])
         nominal_frequency = float(details_data[17:21])
 
-        messages = [
-            {
-                'topic': topic('rating_voltage/state'),
-                'payload': str(rating_voltage)
-            },
-            {
-                'topic': topic('rating_current/state'),
-                'payload': str(rating_current)
-            },
-            {
-                'topic': topic('nominal_battery_voltage/state'),
-                'payload': str(nominal_battery_voltage)
-            },
-            {
-                'topic': topic('nominal_frequency/state'),
-                'payload': str(nominal_frequency)
-            },
-        ]
+        sensors_data.append({
+            'topic': topic('rating_voltage/state'),
+            'payload': str(rating_voltage)
+        })
+        sensors_data.append({
+            'topic': topic('rating_current/state'),
+            'payload': str(rating_current)
+        })
+        sensors_data.append({
+            'topic': topic('nominal_battery_voltage/state'),
+            'payload': str(nominal_battery_voltage)
+        })
+        sensors_data.append({
+            'topic': topic('nominal_frequency/state'),
+            'payload': str(nominal_frequency)
+        })
 
-        publish_multiple(messages)
-
-    time.sleep(pause_time)
+    time.sleep(.1)
 
     # Q1
 
@@ -363,7 +377,7 @@ while True:
 
     if data:
         data = data.decode("utf-8")
-        verboseprint(data)
+        verbose_print(data)
 
         input_voltage = float(data[1:6])
         fault_voltage = float(data[7:12])
@@ -381,72 +395,68 @@ while True:
         shutdown_active = int(data[44:45])
         beeper_on = int(data[45:46])
 
-        messages = [
-            {
-                'topic': topic('input_voltage/state'),
-                'payload': str(input_voltage)
-            },
-            {
-                'topic': topic('fault_voltage/state'),
-                'payload': str(fault_voltage)
-            },
-            {
-                'topic': topic('output_voltage/state'),
-                'payload': str(output_voltage)
-            },
-            {
-                'topic': topic('load_level/state'),
-                'payload': str(load_level)
-            },
-            {
-                'topic': topic('output_frequency/state'),
-                'payload': str(output_frequency)
-            },
-            {
-                'topic': topic('battery_voltage/state'),
-                'payload': str(battery_voltage)
-            },
-            {
-                'topic': topic('ups_temperature/state'),
-                'payload': str(ups_temperature)
-            },
-            {
-                'topic': topic('utility_fail/state', 'binary_sensor'),
-                'payload': "OFF" if utility_fail == 1 else "ON"
-            },
-            {
-                'topic': topic('battery_low/state', 'binary_sensor'),
-                'payload': "ON" if battery_low == 1 else "OFF"
-            },
-            {
-                'topic': topic('working_status/state'),
-                'payload': "BatteryPriority" if working_status == 30 else "Bypass"
-            },
-            {
-                'topic': topic('ups_failed/state', 'binary_sensor'),
-                'payload': "ON" if ups_failed == 1 else "OFF"
-            },
-            {
-                'topic': topic('ups_type/state', 'binary_sensor'),
-                'payload': "ON" if ups_type == 1 else "OFF"
-            },
-            {
-                'topic': topic('test_in_progress/state', 'binary_sensor'),
-                'payload': "ON" if test_in_progress == 1 else "OFF"
-            },
-            {
-                'topic': topic('shutdown_active/state', 'binary_sensor'),
-                'payload': "ON" if shutdown_active == 1 else "OFF"
-            },
-            {
-                'topic': topic('beeper_on/state', 'binary_sensor'),
-                'payload': "ON" if beeper_on == 1 else "OFF"
-            },
-        ]
+        sensors_data.append({
+            'topic': topic('input_voltage/state'),
+            'payload': str(input_voltage)
+        })
+        sensors_data.append({
+            'topic': topic('fault_voltage/state'),
+            'payload': str(fault_voltage)
+        })
+        sensors_data.append({
+            'topic': topic('output_voltage/state'),
+            'payload': str(output_voltage)
+        })
+        sensors_data.append({
+            'topic': topic('load_level/state'),
+            'payload': str(load_level)
+        })
+        sensors_data.append({
+            'topic': topic('output_frequency/state'),
+            'payload': str(output_frequency)
+        })
+        sensors_data.append({
+            'topic': topic('battery_voltage/state'),
+            'payload': str(battery_voltage)
+        })
+        sensors_data.append({
+            'topic': topic('ups_temperature/state'),
+            'payload': str(ups_temperature)
+        })
+        sensors_data.append({
+            'topic': topic('utility_fail/state', 'binary_sensor'),
+            'payload': "OFF" if utility_fail == 1 else "ON"
+        })
+        sensors_data.append({
+            'topic': topic('battery_low/state', 'binary_sensor'),
+            'payload': "ON" if battery_low == 1 else "OFF"
+        })
+        sensors_data.append({
+            'topic': topic('working_status/state'),
+            'payload': "BatteryPriority" if working_status == 30 else "Bypass"
+        })
+        sensors_data.append({
+            'topic': topic('ups_failed/state', 'binary_sensor'),
+            'payload': "ON" if ups_failed == 1 else "OFF"
+        })
+        sensors_data.append({
+            'topic': topic('ups_type/state', 'binary_sensor'),
+            'payload': "ON" if ups_type == 1 else "OFF"
+        })
+        sensors_data.append({
+            'topic': topic('test_in_progress/state', 'binary_sensor'),
+            'payload': "ON" if test_in_progress == 1 else "OFF"
+        })
+        sensors_data.append({
+            'topic': topic('shutdown_active/state', 'binary_sensor'),
+            'payload': "ON" if shutdown_active == 1 else "OFF"
+        })
+        sensors_data.append({
+            'topic': topic('beeper_on/state', 'binary_sensor'),
+            'payload': "ON" if beeper_on == 1 else "OFF"
+        })
 
-        publish_multiple(messages)
-
-    time.sleep(pause_time)
+    time.sleep(.1)
 
     # G?
 
@@ -459,11 +469,14 @@ while True:
 
     if message_data:
         message_data = message_data.decode("utf-8")
-        verboseprint(message_data)
+        verbose_print(message_data)
 
-        publish_single(topic=topic('message/state'), payload=str(message_data))
+        sensors_data.append({
+            'topic': topic('message/state'),
+            'payload': str(message_data)
+        })
 
-    time.sleep(pause_time)
+    time.sleep(.1)
 
     # D
 
@@ -476,14 +489,17 @@ while True:
 
     if is_charging_data:
         is_charging_data = is_charging_data.decode("utf-8")
-        verboseprint(is_charging_data)
+        verbose_print(is_charging_data)
 
         if is_charging_data:
             is_charging = "ON" if is_charging_data == 'ACK' else "OFF"
 
-            publish_single(topic=topic('is_charging/state', 'binary_sensor'), payload=str(is_charging))
+            sensors_data.append({
+                'topic': topic('is_charging/state', 'binary_sensor'),
+                'payload': str(is_charging)
+            })
 
-    time.sleep(pause_time)
+    time.sleep(.1)
 
     # X
 
@@ -496,42 +512,104 @@ while True:
 
     if charging_data:
         charging_data = charging_data.decode("utf-8").strip()
-        verboseprint(charging_data)
+        verbose_print(charging_data)
 
         charging_current = charging_data[0:2]
         if charging_current:
             charging_current = float(int(charging_current, 16))
 
-            publish_single(topic=topic('charging_current/state'), payload=str(charging_current))
+            sensors_data.append({
+                'topic': topic('charging_current/state'),
+                'payload': format(round(charging_current, 1), '.1f')
+            })
 
-    time.sleep(pause_time)
+    time.sleep(.1)
 
     ser.close()
 
     # Calculating sensor values
 
     if rating_current is not None and load_level is not None and output_voltage is not None:
-        output_power = rating_round(round(float(rating_current) * (float(load_level) / 100) * float(output_voltage), 1))
+        output_power = rating_current * (float(load_level) / 100.0) * output_voltage
 
-        publish_single(topic=topic('output_power/state'), payload=str(round(output_power, 1)))
+        sensors_data.append({
+            'topic': topic('output_power/state'),
+            'payload': format(round(output_power, 1), '.1f')
+        })
 
     if battery_voltage is not None and charging_current is not None:
         if is_charging == "ON":
-            input_power = rating_round(round(float(battery_voltage) * float(charging_current), 1))
+            input_power = battery_voltage * charging_current
         else:
-            input_power = 0
+            input_power = 0.0
 
-        publish_single(topic=topic('input_power/state'), payload=str(round(input_power, 1)))
+        sensors_data.append({
+            'topic': topic('input_power/state'),
+            'payload': format(round(input_power, 1), '.1f')
+        })
 
         if is_charging == "ON" and charging_current > float(configuration['charge_config']['float_current']):
-            if float(battery_voltage) > float(configuration['charge_config']['full_voltage']):
-                battery_level = 95.0 + rating_round(round((float(battery_voltage) - float(configuration['charge_config']['full_voltage'])) / (float(configuration['charge_config']['boost_voltage']) - float(configuration['charge_config']['full_voltage'])) * 5, 1))
+            if battery_voltage > float(configuration['charge_config']['full_voltage']):
+                battery_level = 95.0 + (battery_voltage - float(configuration['charge_config']['full_voltage'])) / (float(configuration['charge_config']['boost_voltage']) - float(configuration['charge_config']['full_voltage'])) * 5.0
             else:
-                battery_level = rating_round(round((float(battery_voltage) - float(configuration['charge_config']['empty_voltage'])) / (float(configuration['charge_config']['full_voltage']) - float(configuration['charge_config']['empty_voltage'])) * 95, 1))
+                battery_level = (battery_voltage - float(configuration['charge_config']['empty_voltage'])) / (float(configuration['charge_config']['full_voltage']) - float(configuration['charge_config']['empty_voltage'])) * 95.0
         else:
-            if float(battery_voltage) > float(configuration['discharge_config']['full_voltage']):
+            if battery_voltage > float(configuration['discharge_config']['full_voltage']):
                 battery_level = 100.0
             else:
-                battery_level = rating_round(round((float(battery_voltage) - float(configuration['discharge_config']['empty_voltage'])) / (float(configuration['discharge_config']['full_voltage']) - float(configuration['discharge_config']['empty_voltage'])) * 100, 1))
+                battery_level = (battery_voltage - float(configuration['discharge_config']['empty_voltage'])) / (float(configuration['discharge_config']['full_voltage']) - float(configuration['discharge_config']['empty_voltage'])) * 100.0
 
-        publish_single(topic=topic('battery_level/state'), payload=str(battery_level))
+        sensors_data.append({
+            'topic': topic('battery_level/state'),
+            'payload': format(round(battery_level, 1), '.1f')
+        })
+
+    with open('energy.json') as energy_file:
+        energy = json.loads(energy_file.read())
+
+    if output_power is not None:
+        if energy['output']['updated'] is not None:
+            current_time = round(time.time(), 3)
+            delta = current_time - energy['output']['updated']
+
+            if delta <= (sleep_time * 10):
+                energy['output']['value'] += round(output_power * (delta / 3600), 3)
+                energy['output']['updated'] = current_time
+            else:
+                energy['output']['updated'] = round(time.time(), 3)
+        else:
+            energy['output']['updated'] = round(time.time(), 3)
+    else:
+        energy['output']['updated'] = round(time.time(), 3)
+
+    sensors_data.append({
+        'topic': topic('output_energy/state'),
+        'payload': format(round(energy['output']['value']) / 1000, '.2f')
+    })
+
+    if input_power is not None:
+        if energy['input']['updated'] is not None:
+            current_time = round(time.time(), 3)
+            delta = current_time - energy['input']['updated']
+
+            if delta <= (sleep_time * 10):
+                energy['input']['value'] += round(input_power * (delta / 3600), 3)
+                energy['input']['updated'] = current_time
+            else:
+                energy['input']['updated'] = round(time.time(), 3)
+        else:
+            energy['input']['updated'] = round(time.time(), 3)
+    else:
+        energy['input']['updated'] = round(time.time(), 3)
+
+    sensors_data.append({
+        'topic': topic('input_energy/state'),
+        'payload': format(round(energy['input']['value']) / 1000, '.2f')
+    })
+
+    with open('energy.json', 'w') as energy_file:
+        json.dump(energy, energy_file)
+
+    publish_multiple(sensors_data)
+
+    time.sleep(.1)

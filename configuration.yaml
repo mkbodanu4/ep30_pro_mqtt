@@ -2,8 +2,7 @@ serial:
   port: '/dev/ttyUSB0'
 
 run:
-  pause_time: 1
-  sleep_time: 5
+  sleep_time: 2
 
 discharge_config:
   full_voltage: 12.8
