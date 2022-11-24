@@ -14,6 +14,8 @@ charge_config:
   boost_voltage: 14.4
   empty_voltage: 10.5
 
+energy: False
+
 mqtt:
   hostname: '192.168.1.1'
   username: 'usr'

@@ -299,7 +299,10 @@ while True:
                 "state_topic": topic('input_power/state'),
             })
         },
-        {
+    ]
+
+    if configuration['energy']:
+        sensors_definitions.append({
             'topic': topic('output_energy/config'),
             'payload': json.dumps({
                 "name": name("Output Energy"),
@@ -308,8 +311,8 @@ while True:
                 "state_class": "total_increasing",
                 "state_topic": topic('output_energy/state'),
             })
-        },
-        {
+        })
+        sensors_definitions.append({
             'topic': topic('input_energy/config'),
             'payload': json.dumps({
                 "name": name("Input Energy"),
@@ -318,8 +321,7 @@ while True:
                 "state_class": "total_increasing",
                 "state_topic": topic('input_energy/state'),
             })
-        },
-    ]
+        })
 
     publish_multiple(sensors_definitions)
 
@@ -564,51 +566,52 @@ while True:
             'payload': format(round(battery_level, 1), '.1f')
         })
 
-    with open('energy.json') as energy_file:
-        energy = json.loads(energy_file.read())
+    if configuration['energy']:
+        with open('energy.json') as energy_file:
+            energy = json.loads(energy_file.read())
 
-    if output_power is not None:
-        if energy['output']['updated'] is not None:
-            current_time = round(time.time(), 3)
-            delta = current_time - energy['output']['updated']
+        if output_power is not None:
+            if energy['output']['updated'] is not None:
+                current_time = round(time.time(), 3)
+                delta = current_time - energy['output']['updated']
 
-            if delta <= (sleep_time * 10):
-                energy['output']['value'] += round(output_power * (delta / 3600), 3)
-                energy['output']['updated'] = current_time
+                if delta <= (sleep_time * 10):
+                    energy['output']['value'] += round(output_power * (delta / 3600), 3)
+                    energy['output']['updated'] = current_time
+                else:
+                    energy['output']['updated'] = round(time.time(), 3)
             else:
                 energy['output']['updated'] = round(time.time(), 3)
         else:
             energy['output']['updated'] = round(time.time(), 3)
-    else:
-        energy['output']['updated'] = round(time.time(), 3)
 
-    sensors_data.append({
-        'topic': topic('output_energy/state'),
-        'payload': format(round(energy['output']['value']) / 1000, '.2f')
-    })
+        sensors_data.append({
+            'topic': topic('output_energy/state'),
+            'payload': format(round(energy['output']['value']) / 1000, '.2f')
+        })
 
-    if input_power is not None:
-        if energy['input']['updated'] is not None:
-            current_time = round(time.time(), 3)
-            delta = current_time - energy['input']['updated']
+        if input_power is not None:
+            if energy['input']['updated'] is not None:
+                current_time = round(time.time(), 3)
+                delta = current_time - energy['input']['updated']
 
-            if delta <= (sleep_time * 10):
-                energy['input']['value'] += round(input_power * (delta / 3600), 3)
-                energy['input']['updated'] = current_time
+                if delta <= (sleep_time * 10):
+                    energy['input']['value'] += round(input_power * (delta / 3600), 3)
+                    energy['input']['updated'] = current_time
+                else:
+                    energy['input']['updated'] = round(time.time(), 3)
             else:
                 energy['input']['updated'] = round(time.time(), 3)
         else:
             energy['input']['updated'] = round(time.time(), 3)
-    else:
-        energy['input']['updated'] = round(time.time(), 3)
 
-    sensors_data.append({
-        'topic': topic('input_energy/state'),
-        'payload': format(round(energy['input']['value']) / 1000, '.2f')
-    })
+        sensors_data.append({
+            'topic': topic('input_energy/state'),
+            'payload': format(round(energy['input']['value']) / 1000, '.2f')
+        })
 
-    with open('energy.json', 'w') as energy_file:
-        json.dump(energy, energy_file)
+        with open('energy.json', 'w') as energy_file:
+            json.dump(energy, energy_file)
 
     publish_multiple(sensors_data)
 
