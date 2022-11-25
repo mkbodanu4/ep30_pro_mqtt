@@ -16,6 +16,13 @@ charge_config:
 
 energy: False
 
+trigger:
+  enable: True
+  command:
+    - 'shutdown'
+    - 'now'
+  voltage: 10.7
+
 mqtt:
   hostname: '192.168.1.1'
   username: 'usr'

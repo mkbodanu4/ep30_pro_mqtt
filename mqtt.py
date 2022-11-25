@@ -4,6 +4,7 @@ import time
 import json
 import yaml
 import argparse
+import subprocess
 
 with open("configuration.yaml", 'r') as stream:
     configuration = yaml.safe_load(stream)
@@ -614,5 +615,9 @@ while True:
             json.dump(energy, energy_file)
 
     publish_multiple(sensors_data)
+
+    if configuration['trigger']['enable'] and battery_voltage <= configuration['trigger']['voltage']:
+        print("Event triggered")
+        subprocess.run(configuration['trigger']['command'])
 
     time.sleep(.1)
