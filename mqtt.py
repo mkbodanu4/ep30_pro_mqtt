@@ -521,6 +521,9 @@ while True:
         if charging_current:
             charging_current = float(int(charging_current, 16))
 
+            if is_charging == "OFF":
+                charging_current = 0.0
+
             sensors_data.append({
                 'topic': topic('charging_current/state'),
                 'payload': format(round(charging_current, 1), '.1f')
