@@ -1,5 +1,5 @@
-# MQTT Client for EP30 Pro
-Application for Must EP30 Pro Charger/Inverter, that allows to integrate it into Home Assistant using MQTT.
+# MQTT Client for EP30 Pro/EP3000 Plus
+Application for Must EP30 Pro/EP3000 Plus Charger/Inverter, that allows to integrate it into Home Assistant using MQTT.
 
 ## Installation
 
@@ -8,7 +8,13 @@ Application for Must EP30 Pro Charger/Inverter, that allows to integrate it into
 ```sh
 $ pip install paho-mqtt pyserial
 ```
-   
+
+If your device is EP3000 Plus also install
+
+```sh
+$ pip3 install pymodbus
+```
+
 2. Check out and install the latest source code
 
 ```sh
@@ -23,13 +29,24 @@ Open `configuration.yaml` and update serial port and MQTT server details with yo
 ## Usage
 ### Running with CLI:
 
+Note: You may need to run script with admin/root privileges.
+
+For EP30 Pro:
+
 ```sh
 $ python mqtt.py [-v] [-h]
 ```
 
-Note: You may need to run script with admin/root privileges.
-
 Enabling verbose returns raw data from UPS serial port into console stdout.
+
+For EP3000 Plus:
+
+```sh
+$ python3 ep3000_plus.py
+```
+
+If you need to debug the parameters/connection uncoment 'logging' section
+in the top of the script and set 'debug' variable to 'on'
 
 ## Running as service (via systemd)
 
@@ -50,6 +67,7 @@ $ sudo nano /etc/systemd/system/ep30.service
 
 4. Update `WorkingDirectory` and `ExecStart` with proper path to code.
 
+5. If your device is Ep3000 Plus uncomment appropriate section and comment ExecStart for mqtt.py
 
 5. Start and enable service
 
