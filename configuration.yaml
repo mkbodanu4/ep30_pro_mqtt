@@ -16,6 +16,19 @@ charge_config:
 
 energy: False
 
+sensors:
+  - 'battery_level'
+  - 'battery_voltage'
+  - 'charging_current'
+  - 'input_voltage'
+  - 'load_current'
+  - 'load_level'
+  - 'output_power'
+  - 'output_voltage'
+  - 'ups_temperature'
+
+debug: off
+
 trigger:
   enable: True
   command:
