@@ -300,9 +300,15 @@ while True:
   output_power = result.registers[10]
   load_level = result.registers[12]
   battery_voltage = format(round(result.registers[14] * 0.1, 1), '.1f')
-  charging_current = format(round(result.registers[15] * 0.1, 1), '.1f')
   battery_level = result.registers[17]
   ups_temperature = result.registers[18]
+
+  # Check if battery is discharging. If yes - charging_current parameter
+  # is irrelevant and shows some impossible numbers
+  if ( result.registers[2] == 1 ):
+    charging_current = 0
+  else:
+    charging_current = format(round(result.registers[15] * 0.1, 1), '.1f')
 
   sensors_data.append({
     'topic': topic('input_voltage/state'),
