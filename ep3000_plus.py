@@ -366,7 +366,32 @@ while True:
         })
 
       case 'battery_level':
-        battery_level = result.registers[17]
+        battery_voltage = round(result.registers[14] * 0.1, 1)
+        charging_current = round(result.registers[15] * 0.1, 1)
+        if ( result.registers[2] == 2 and
+          charging_current > float(configuration['charge_config']['float_current'])):
+          if battery_voltage > float(configuration['charge_config']['full_voltage']):
+            battery_level = ( 95.0 + (battery_voltage
+            - float(configuration['charge_config']['full_voltage']))
+            / (float(configuration['charge_config']['boost_voltage'])
+            - float(configuration['charge_config']['full_voltage']))
+            * 5.0 )
+          else:
+            battery_level = ( (battery_voltage
+            - float(configuration['charge_config']['empty_voltage']))
+            / (float(configuration['charge_config']['full_voltage'])
+            - float(configuration['charge_config']['empty_voltage']))
+            * 95.0 )
+        else:
+            if battery_voltage > float(configuration['discharge_config']['full_voltage']):
+              battery_level = 100.0
+            else:
+              battery_level = ( (battery_voltage
+              - float(configuration['discharge_config']['empty_voltage']))
+              / (float(configuration['discharge_config']['full_voltage'])
+              - float(configuration['discharge_config']['empty_voltage']))
+              * 100.0 )
+
         sensors_data.append({
           'topic': topic('battery_level/state'),
           'payload': str(battery_level)
