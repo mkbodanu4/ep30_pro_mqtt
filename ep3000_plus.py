@@ -392,6 +392,7 @@ while True:
               - float(configuration['discharge_config']['empty_voltage']))
               * 100.0 )
 
+        battery_level = round(battery_level, 1)
         sensors_data.append({
           'topic': topic('battery_level/state'),
           'payload': str(battery_level)
