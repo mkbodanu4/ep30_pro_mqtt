@@ -18,6 +18,7 @@ hostname = '192.168.0.1'
 username = 'admin'
 password = ''
 backend = 'homeassist'
+sleep_time = 1
 
 # If True - do not send data to mqtt brocker just print all parameters
 # listed in 'attributes'
@@ -36,6 +37,7 @@ if ( isfile('configuration.yaml') ):
       'password': configuration['mqtt']['password']
     }
   backend = configuration['backend']
+  sleep_time = configuration['run']['sleep_time']
 
 model = "EP3000"
 baud = 9600
@@ -417,4 +419,4 @@ while True:
 
   publish_multiple(sensors_data)
 
-  time.sleep(1)
+  time.sleep(sleep_time)
