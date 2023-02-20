@@ -69,6 +69,7 @@
               "mode": "off"
             }
           },
+          "displayName": "input voltage",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -96,10 +97,12 @@
       "id": 123127,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -116,7 +119,7 @@
           "refId": "A"
         }
       ],
-      "title": "Input Voltage (V)",
+      "title": "Input Voltage",
       "type": "timeseries"
     },
     {
@@ -160,6 +163,7 @@
               "mode": "off"
             }
           },
+          "displayName": "output voltage",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -187,10 +191,12 @@
       "id": 123125,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -207,7 +213,7 @@
           "refId": "A"
         }
       ],
-      "title": "Output Voltage (V)",
+      "title": "Output Voltage",
       "type": "timeseries"
     },
     {
@@ -251,6 +257,7 @@
               "mode": "off"
             }
           },
+          "displayName": "battery voltage",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -278,10 +285,12 @@
       "id": 123129,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -298,7 +307,7 @@
           "refId": "A"
         }
       ],
-      "title": "Battery Voltage (V)",
+      "title": "Battery Voltage",
       "type": "timeseries"
     },
     {
@@ -342,6 +351,7 @@
               "mode": "off"
             }
           },
+          "displayName": "current load",
           "mappings": [],
           "max": 100,
           "min": 0,
@@ -371,10 +381,12 @@
       "id": 123141,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -391,7 +403,7 @@
           "refId": "A"
         }
       ],
-      "title": "Current Load (%)",
+      "title": "Current Load",
       "type": "timeseries"
     },
     {
@@ -434,6 +446,7 @@
               "mode": "off"
             }
           },
+          "displayName": "battery level",
           "mappings": [],
           "max": 100,
           "min": 0,
@@ -446,7 +459,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 10
               }
             ]
           },
@@ -463,10 +476,12 @@
       "id": 123133,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -483,7 +498,7 @@
           "refId": "A"
         }
       ],
-      "title": "Battery Level (%)",
+      "title": "Battery Level",
       "type": "timeseries"
     },
     {
@@ -527,6 +542,7 @@
               "mode": "off"
             }
           },
+          "displayName": "output power",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -554,10 +570,12 @@
       "id": 123139,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -574,7 +592,7 @@
           "refId": "A"
         }
       ],
-      "title": "Output Power (W)",
+      "title": "Output Power",
       "type": "timeseries"
     },
     {
@@ -617,13 +635,13 @@
               "mode": "off"
             }
           },
+          "displayName": "charging current",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -644,10 +662,12 @@
       "id": 123131,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -664,7 +684,7 @@
           "refId": "A"
         }
       ],
-      "title": "Charging Current (A)",
+      "title": "Charging Current",
       "type": "timeseries"
     },
     {
@@ -708,6 +728,7 @@
               "mode": "off"
             }
           },
+          "displayName": "load level",
           "mappings": [],
           "max": 100,
           "min": 0,
@@ -715,8 +736,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -737,7 +757,9 @@
       "id": 123135,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -757,7 +779,7 @@
           "refId": "A"
         }
       ],
-      "title": "Load Level (%)",
+      "title": "Load Level",
       "type": "timeseries"
     },
     {
@@ -800,13 +822,13 @@
               "mode": "off"
             }
           },
+          "displayName": "inverter temperate",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -827,10 +849,12 @@
       "id": 123137,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -948,7 +972,7 @@
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -981,6 +1005,6 @@
   "timezone": "browser",
   "title": "Home",
   "uid": "4ufcl_14k",
-  "version": 27,
+  "version": 40,
   "weekStart": ""
 }
