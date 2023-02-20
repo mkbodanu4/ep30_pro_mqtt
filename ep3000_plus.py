@@ -309,9 +309,9 @@ for sensor in configuration['sensors']:
         })
       })
 
-while True:
-  publish_multiple(sensors_definitions)
+publish_multiple(sensors_definitions)
 
+while True:
   sensors_data = []
 
   result = client.read_holding_registers(address, length, slave=id)
