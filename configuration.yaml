@@ -29,6 +29,9 @@ sensors:
 
 debug: off
 
+# possible values: homeassist, grafana
+backend: homeassist
+
 trigger:
   enable: True
   command:

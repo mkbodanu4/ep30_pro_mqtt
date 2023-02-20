@@ -17,6 +17,7 @@ from pymodbus.register_read_message import ReadHoldingRegistersResponse
 hostname = '192.168.0.1'
 username = 'admin'
 password = ''
+backend = 'homeassist'
 
 # If True - do not send data to mqtt brocker just print all parameters
 # listed in 'attributes'
@@ -34,6 +35,7 @@ if ( isfile('configuration.yaml') ):
       'username': configuration['mqtt']['username'],
       'password': configuration['mqtt']['password']
     }
+  backend = configuration['backend']
 
 model = "EP3000"
 baud = 9600
@@ -309,7 +311,8 @@ for sensor in configuration['sensors']:
         })
       })
 
-publish_multiple(sensors_definitions)
+if (backend == 'homeassist'):
+  publish_multiple(sensors_definitions)
 
 while True:
   sensors_data = []
