@@ -115,7 +115,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_input_voltage/state\")",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_input_voltage/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")\n",
           "refId": "A"
         }
       ],
@@ -209,7 +209,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_output_voltage/state\")\n|> yield(name: \"output_voltage\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_output_voltage/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
           "refId": "A"
         }
       ],
@@ -303,7 +303,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_battery_voltage/state\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_battery_voltage/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")\n",
           "refId": "A"
         }
       ],
@@ -399,7 +399,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_load_current/state\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_load_current/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
           "refId": "A"
         }
       ],
@@ -494,7 +494,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_battery_level/state\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_battery_level/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
           "refId": "A"
         }
       ],
@@ -588,7 +588,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_output_power/state\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_output_power/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
           "refId": "A"
         }
       ],
@@ -641,7 +641,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -680,7 +681,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_charging_current/state\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_charging_current/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
           "refId": "A"
         }
       ],
@@ -736,7 +737,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -775,7 +777,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_load_level/state\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_load_level/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
           "refId": "A"
         }
       ],
@@ -828,7 +830,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -867,7 +870,7 @@
             "type": "influxdb",
             "uid": "KOINA_1Vz"
           },
-          "query": "from(bucket: \"home\")\n|> range(start: -1d)\n|> filter(fn: (r) => r.topic == \"homeassistant/sensor/ep30_ups_temperature/state\")\n",
+          "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> filter(fn: (r) => r[\"host\"] == \"debian\")\n  |> filter(fn: (r) => r[\"topic\"] == \"homeassistant/sensor/ep30_ups_temperature/state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
           "refId": "A"
         }
       ],
@@ -1005,6 +1008,6 @@
   "timezone": "browser",
   "title": "Home",
   "uid": "4ufcl_14k",
-  "version": 40,
+  "version": 51,
   "weekStart": ""
 }
