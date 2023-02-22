@@ -1,7 +1,9 @@
 # MQTT Client for EP30 Pro/EP3000 Plus
-Application for Must EP30 Pro/EP3000 Plus Charger/Inverter, that allows to integrate it into Home Assistant using MQTT.
+Application for Must EP30 Pro/EP3000 Plus Charger/Inverter, that allows to integrate it into Home Assistant using MQTT or Telegraf/Influxdb/Grafana.
 
 ## Installation
+
+### For Home Assistant setup
 
 1. Install dependencies using `pip`:
 
@@ -15,18 +17,44 @@ If your device is EP3000 Plus also install
 $ pip3 install pymodbus
 ```
 
-2. Check out and install the latest source code
+### For Telegraf/Influxdb/Grafana setup
+
+1. Install Telegraf/Influxdb/Grafana
 
 ```sh
-$ git clone https://github.com/mkbodanu4/ep30_pro_mqtt.git
+# apt install telegraf influxdb2 grafana
+```
+
+2. Install dependencies using `pip`:
+
+```sh
+$ pip install line_protocol_parser influx_line_protocol
+```
+
+### Check out and install the latest source code
+
+```sh
+$ git clone https://github.com/darkmind/ep30_pro_mqtt.git
 $ cd ep30_pro_mqtt/
 ```
 
 ## Configuration
 
-Open `configuration.yaml` and update serial port and MQTT server details with your own.
+Open `configuration.yaml` and update serial port, discharge_config, charge_config.
 
-## Usage
+### For Home Assistant setup
+
+Update MQTT server details with your own in `configuration.yaml`.
+
+### For Telegraf/Influxdb/Grafana setup
+
+Create user/token/bucket in Influx db.
+
+Create telegraf configuration file, the example in https://github.com/darkmind/ep30_pro_mqtt/blob/main/grafana/telegraf.conf
+
+You can find Grafana dashboard in https://github.com/darkmind/ep30_pro_mqtt/blob/main/grafana/grafana_home_dashboard.json
+
+## Usage (for Home Assistant)
 ### Running with CLI:
 
 Note: You may need to run script with admin/root privileges.
