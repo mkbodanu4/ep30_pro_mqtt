@@ -29,8 +29,8 @@ sensors:
 
 debug: off
 
-# possible values: homeassist, grafana
-backend: homeassist
+# possible values: mqtt, influx
+backend: mqtt
 
 trigger:
   enable: True
@@ -43,3 +43,9 @@ mqtt:
   hostname: '192.168.1.1'
   username: 'usr'
   password: 'passwd'
+
+influx:
+  hostname: 'http://192.168.1.1:8086'
+  bucket:   ''
+  token:    ''
+  org:      ''

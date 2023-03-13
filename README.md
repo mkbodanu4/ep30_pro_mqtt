@@ -1,34 +1,14 @@
 # MQTT Client for EP30 Pro/EP3000 Plus
 Application for Must EP30 Pro/EP3000 Plus Charger/Inverter, that allows to integrate it into Home Assistant using MQTT or Telegraf/Influxdb/Grafana.
 
-## Installation
+## For EP30 Pro
 
-### For Home Assistant setup
+### Installation
 
-1. Install dependencies using `pip`:
+Install dependencies using `pip`:
 
 ```sh
 $ pip install paho-mqtt pyserial
-```
-
-If your device is EP3000 Plus also install
-
-```sh
-$ pip3 install pymodbus
-```
-
-### For Telegraf/Influxdb/Grafana setup
-
-1. Install Telegraf/Influxdb/Grafana
-
-```sh
-# apt install telegraf influxdb2 grafana
-```
-
-2. Install dependencies using `pip`:
-
-```sh
-$ pip install line_protocol_parser influx_line_protocol
 ```
 
 ### Check out and install the latest source code
@@ -38,23 +18,12 @@ $ git clone https://github.com/darkmind/ep30_pro_mqtt.git
 $ cd ep30_pro_mqtt/
 ```
 
-## Configuration
+### Configuration
 
-Open `configuration.yaml` and update serial port, discharge_config, charge_config.
+Open `configuration.yaml` and update serial port, discharge_config,
+charge_config. Update 'backend' option and appropriate section, 'mqtt' or
+'influx'.
 
-### For Home Assistant setup
-
-Update MQTT server details with your own in `configuration.yaml`.
-
-### For Telegraf/Influxdb/Grafana setup
-
-Create user/token/bucket in Influx db.
-
-Create telegraf configuration file, the example in https://github.com/darkmind/ep30_pro_mqtt/blob/main/grafana/telegraf.conf
-
-You can find Grafana dashboard in https://github.com/darkmind/ep30_pro_mqtt/blob/main/grafana/grafana_home_dashboard.json
-
-## Usage (for Home Assistant)
 ### Running with CLI:
 
 Note: You may need to run script with admin/root privileges.
@@ -65,16 +34,48 @@ For EP30 Pro:
 $ python mqtt.py [-v] [-h]
 ```
 
-Enabling verbose returns raw data from UPS serial port into console stdout.
+## For EP3000 Plus
 
-For EP3000 Plus:
+### Installation
+
+Install dependencies using `pip`:
 
 ```sh
-$ python3 ep3000_plus.py
+$ pip3 install pymodbus
 ```
 
-If you need to debug the parameters/connection uncoment 'logging' section
-in the top of the script and set 'debug' variable to 'on'
+For 'mqtt' backend:
+
+```sh
+$ pip install paho-mqtt pyserial
+```
+
+For 'influx' backend:
+
+```sh
+$ pip install 'influxdb-client[ciso]'
+```
+
+### Check out and install the latest source code
+
+```sh
+$ git clone https://github.com/darkmind/ep30_pro_mqtt.git
+$ cd ep30_pro_mqtt/
+```
+
+### Configuration
+
+Open `configuration.yaml` and update serial port, discharge_config,
+charge_config. Update 'backend' option and appropriate section, 'mqtt' or
+'influx'.
+
+### For Telegraf/Influxdb/Grafana setup
+
+Create user/token/bucket in Influx db.
+
+if you use telegraf - create configuration file, the example in https://github.com/darkmind/ep30_pro_mqtt/blob/main/grafana/telegraf.conf
+
+You can find Grafana dashboard in https://github.com/darkmind/ep30_pro_mqtt/blob/main/grafana/grafana_home_dashboard.json
 
 ## Running as service (via systemd)
 
