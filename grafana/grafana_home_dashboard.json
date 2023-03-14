@@ -354,6 +354,7 @@
           },
           "displayName": "output power",
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -641,7 +642,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -730,13 +732,13 @@
           },
           "displayName": "current load",
           "mappings": [],
-          "max": 100,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -824,11 +826,14 @@
           },
           "displayName": "inverter temperate",
           "mappings": [],
+          "max": 80,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -920,7 +925,7 @@
         "showStarred": true,
         "tags": []
       },
-      "pluginVersion": "9.3.6",
+      "pluginVersion": "9.4.3",
       "tags": [],
       "targets": [
         {
@@ -964,15 +969,16 @@
       "type": "news"
     }
   ],
-  "refresh": false,
-  "schemaVersion": 37,
+  "refresh": "",
+  "revision": 1,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -1005,6 +1011,6 @@
   "timezone": "browser",
   "title": "Home",
   "uid": "4ufcl_14k",
-  "version": 67,
+  "version": 76,
   "weekStart": ""
 }
