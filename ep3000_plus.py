@@ -31,86 +31,19 @@ def publish_multiple(msgs):
   except Exception as e:
     print(e)
 
-def add_output_voltage(value):
+def add_sensor_data(name, value):
   if (backend == 'mqtt'):
     sensors_data.append({
-      'topic': topic('output_voltage/state'),
+      'topic': topic(str(name) + '/state'),
       'payload': str(value)
     })
   elif (backend == 'influx'):
-    metric.field('output_voltage', float(value))
+    metric.field(name, float(value))
 
-def add_load_level(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('load_level/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('load_level', float(value))
-
-def add_input_voltage(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('input_voltage/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('input_voltage', float(value))
-
-def add_battery_voltage(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('battery_voltage/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('battery_voltage', float(value))
-
-def add_ups_temperature(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('ups_temperature/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('ups_temperature', float(value))
-
-def add_charging_current(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('charging_current/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('charging_current', float(value))
-
-def add_battery_level(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('battery_level/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('battery_level', float(value))
-
-def add_output_power(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('output_power/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('output_power', float(value))
-
-def add_load_current(value):
-  if (backend == 'mqtt'):
-    sensors_data.append({
-      'topic': topic('load_current/state'),
-      'payload': str(value)
-    })
-  elif (backend == 'influx'):
-    metric.field('load_current', float(value))
+def get_sensor_data(name):
+    index = sensor_details[name]['register_index']
+    multi = sensor_details[name]['multiplier']
+    return float(format(round(result.registers[index] * multi, 1), '.1f'))
 
 def push_data():
   if (backend == 'mqtt'):
@@ -248,6 +181,41 @@ attributes = [
 ]
 last_index = len(attributes) - 1
 
+sensor_details = {
+  'battery_voltage': {
+    'register_index': 14,
+    'multiplier': 0.1
+  },
+  'charging_current': {
+    'register_index': 15,
+    'multiplier': 0.1
+  },
+  'input_voltage': {
+    'register_index': 5,
+    'multiplier': 0.1
+  },
+  'load_current': {
+    'register_index': 9,
+    'multiplier': 1.0
+  },
+  'load_level': {
+    'register_index': 12,
+    'multiplier': 1.0
+  },
+  'output_power': {
+    'register_index': 10,
+    'multiplier': 1.0
+  },
+  'output_voltage': {
+    'register_index': 7,
+    'multiplier': 0.1
+  },
+  'ups_temperature': {
+    'register_index': 18,
+    'multiplier': 0.1
+  }
+}
+
 backend    = 'mqtt'
 hostname   = '192.168.0.1'
 org        = 'home'
@@ -263,6 +231,7 @@ sensors    = [
   'output_voltage',
   'ups_temperature'
 ]
+
 sleep_time = 1
 username   = 'admin'
 
@@ -279,6 +248,13 @@ stopbits = 1
 # listed in 'attributes'
 debug = False
 
+c_boost_voltage = 28.8
+c_empty_voltage = 21.0
+c_float_current = 27.0
+c_full_voltage  = 27.2
+d_empty_voltage = 21.0
+d_full_voltage  = 25.6
+
 if ( isfile('configuration.yaml') ):
   with open("configuration.yaml", 'r') as stream:
     configuration = safe_load(stream)
@@ -287,6 +263,12 @@ if ( isfile('configuration.yaml') ):
   backend    = configuration['backend']
   sensors    = configuration['sensors']
   sleep_time = configuration['run']['sleep_time']
+  c_boost_voltage = configuration['charge_config']['boost_voltage']
+  c_empty_voltage = configuration['charge_config']['empty_voltage']
+  c_float_current = configuration['charge_config']['float_current']
+  c_full_voltage  = configuration['charge_config']['full_voltage']
+  d_empty_voltage = configuration['discharge_config']['empty_voltage']
+  d_full_voltage  = configuration['discharge_config']['full_voltage']
 
   if (backend == 'mqtt'):
     hostname = configuration['mqtt']['hostname']
@@ -301,33 +283,6 @@ if ( isfile('configuration.yaml') ):
     org      = configuration['influx']['org']
     token    = configuration['influx']['token']
     bucket   = configuration['influx']['bucket']
-
-client = ModbusSerialClient(
-  port = '/dev/ttyUSB0',
-  baudrate = baud,
-  parity = parity,
-  stopbits = stopbits,
-  timeout = 10
-)
-client.connect()
-
-if not client.is_socket_open():
-  print("not connected")
-  exit(1)
-
-if debug:
-  result = client.read_holding_registers(address, length, slave = id)
-  index = 0
-  for register in result.registers:
-    value = result.registers[index]
-    name = attributes[index]['name']
-    if ( 'multiplier' in attributes[index] ):
-      value = value * attributes[index]['multiplier']
-    unit = attributes[index]['unit_of_measurement']
-    print(name + ' (' + unit + '): ' + str(value))
-    index += 1
-    if ( last_index < index ):
-      exit(0)
 
 if (backend == 'mqtt'):
   sensors_definitions = []
@@ -429,6 +384,36 @@ if (backend == 'mqtt'):
             "state_topic": topic('load_current/state'),
           })
         })
+
+
+client = ModbusSerialClient(
+  port = '/dev/ttyUSB0',
+  baudrate = baud,
+  parity = parity,
+  stopbits = stopbits,
+  timeout = 10
+)
+client.connect()
+
+if not client.is_socket_open():
+  print("not connected")
+  exit(1)
+
+if debug:
+  result = client.read_holding_registers(address, length, slave = id)
+  index = 0
+  for register in result.registers:
+    value = result.registers[index]
+    name = attributes[index]['name']
+    if ( 'multiplier' in attributes[index] ):
+      value = value * attributes[index]['multiplier']
+    unit = attributes[index]['unit_of_measurement']
+    print(name + ' (' + unit + '): ' + str(value))
+    index += 1
+    if ( last_index < index ):
+      exit(0)
+
+if (backend == 'mqtt'):
   publish_multiple(sensors_definitions)
 elif (backend == 'influx'):
   try:
@@ -448,34 +433,20 @@ while True:
 
   for sensor in sensors:
     match sensor:
-      case 'output_voltage':
-        add_output_voltage(format(round(result.registers[7] * 0.1, 1), '.1f'))
-
-      case 'load_level':
-        add_load_level(result.registers[12])
-
-      case 'input_voltage':
-        add_input_voltage(format(round(result.registers[5] * 0.1, 1), '.1f'))
-
-      case 'battery_voltage':
-        add_battery_voltage(format(round(result.registers[14] * 0.1, 1), '.1f'))
-
-      case 'ups_temperature':
-        add_ups_temperature(result.registers[18])
-
       case 'charging_current':
         # Check if battery is discharging. If yes - charging_current parameter
         # is irrelevant and shows some impossible numbers
         if (result.registers[2] == 1):
           charging_current = 0
         else:
-          charging_current = format(round(result.registers[15] * 0.1, 1), '.1f')
+          charging_current = get_sensor_data(sensor)
 
-        add_charging_current(charging_current)
+        add_sensor_data(sensor, charging_current)
+        continue
 
       case 'battery_level':
-        battery_voltage = round(result.registers[14] * 0.1, 1)
-        charging_current = round(result.registers[15] * 0.1, 1)
+        battery_voltage = get_sensor_data('battery_voltage')
+        charging_current = get_sensor_data('charging_current')
         if ( result.registers[2] == 2 and
           charging_current > float(configuration['charge_config']['float_current'])):
           if battery_voltage > float(configuration['charge_config']['full_voltage']):
@@ -501,13 +472,10 @@ while True:
               * 100.0 )
 
         battery_level = round(battery_level, 1)
-        add_battery_level(battery_level)
+        add_sensor_data(sensor, battery_level)
+        continue
 
-      case 'output_power':
-        add_output_power(result.registers[10])
-
-      case 'load_current':
-        add_load_current(result.registers[9])
+    add_sensor_data(sensor, get_sensor_data(sensor))
 
   push_data()
 
