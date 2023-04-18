@@ -422,6 +422,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisSoftMin": -1,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 0,
@@ -449,6 +450,8 @@
           },
           "displayName": "battery voltage",
           "mappings": [],
+          "max": 30,
+          "min": 10,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -642,8 +645,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -737,8 +739,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -832,8 +833,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -978,7 +978,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -1011,6 +1011,6 @@
   "timezone": "browser",
   "title": "Home",
   "uid": "4ufcl_14k",
-  "version": 76,
+  "version": 78,
   "weekStart": ""
 }
