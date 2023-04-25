@@ -212,7 +212,7 @@ sensor_details = {
   },
   'ups_temperature': {
     'register_index': 18,
-    'multiplier': 0.1
+    'multiplier': 1.0
   }
 }
 
