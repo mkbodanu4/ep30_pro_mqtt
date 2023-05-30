@@ -1,0 +1,5 @@
+dist: jammy
+language: python
+python:
+  - "3.11"
+script: pylint ep3000_plus.py

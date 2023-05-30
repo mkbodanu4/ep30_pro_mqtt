@@ -16,6 +16,22 @@ charge_config:
 
 energy: False
 
+sensors:
+  - 'battery_level'
+  - 'battery_voltage'
+  - 'charging_current'
+  - 'input_voltage'
+  - 'load_current'
+  - 'load_level'
+  - 'output_power'
+  - 'output_voltage'
+  - 'ups_temperature'
+
+debug: off
+
+# possible values: mqtt, influx
+backend: mqtt
+
 trigger:
   enable: True
   command:
@@ -27,3 +43,9 @@ mqtt:
   hostname: '192.168.1.1'
   username: 'usr'
   password: 'passwd'
+
+influx:
+  hostname: 'http://192.168.1.1:8086'
+  bucket:   ''
+  token:    ''
+  org:      ''

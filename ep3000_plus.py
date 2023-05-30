@@ -1,8 +1,12 @@
-import time
-import json
-import paho.mqtt.publish as publish
-import yaml
+from json import dumps
 from os.path import isfile
+from time import sleep, time_ns
+from yaml import safe_load
+
+import paho.mqtt.publish as publish
+
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 # Uncomment this section to see what is sent and recieved from Modbus client
 #import logging
@@ -14,34 +18,43 @@ from pymodbus.constants import Endian
 from pymodbus.client import ModbusSerialClient
 from pymodbus.register_read_message import ReadHoldingRegistersResponse
 
-hostname = '192.168.0.1'
-username = 'admin'
-password = ''
 
-if ( isfile('configuration.yaml') ):
-  with open("configuration.yaml", 'r') as stream:
-    configuration = yaml.safe_load(stream)
+def topic(name_value, component='sensor'):
+  return 'homeassistant/' + component + '/ep30_' + name_value
 
-  hostname = configuration['mqtt']['hostname']
-  auth = None
-  if configuration['mqtt']['username'] and configuration['mqtt']['password']:
-    auth = {
-      'username': configuration['mqtt']['username'],
-      'password': configuration['mqtt']['password']
-    }
+def name(sensor_name, prefix='EP30 ', suffix=''):
+  return prefix + sensor_name + suffix
 
-model = "EP3000"
-baud = 9600
-stopbits = 1
-parity = "N"
-order = Endian.Little
-address = 30000
-length = 26
-id = 10
+def publish_multiple(msgs):
+  try:
+    publish.multiple(msgs=msgs, hostname=hostname, auth=auth)
+  except Exception as e:
+    print(e)
 
-# If on - do not send data to mqtt brocker just print all parameters
-# listed in 'attributes'
-debug = 'off'
+def add_sensor_data(name, value):
+  if (backend == 'mqtt'):
+    sensors_data.append({
+      'topic': topic(str(name) + '/state'),
+      'payload': str(value)
+    })
+  elif (backend == 'influx'):
+    metric.field(name, float(value))
+
+def get_sensor_data(name):
+    index = sensor_details[name]['register_index']
+    multi = sensor_details[name]['multiplier']
+    return float(format(round(result.registers[index] * multi, 1), '.1f'))
+
+def push_data():
+  if (backend == 'mqtt'):
+    publish_multiple(sensors_data)
+  elif (backend == 'influx'):
+    metric.time(timestemp)
+    try:
+      write_api.write(bucket = bucket, record = metric)
+    except Exception as e:
+      print(e)
+
 
 attributes = [
   {
@@ -168,17 +181,209 @@ attributes = [
 ]
 last_index = len(attributes) - 1
 
-def topic(name_value, component='sensor'):
-  return 'homeassistant/' + component + '/ep30_' + name_value
+sensor_details = {
+  'battery_voltage': {
+    'register_index': 14,
+    'multiplier': 0.1
+  },
+  'charging_current': {
+    'register_index': 15,
+    'multiplier': 0.1
+  },
+  'input_voltage': {
+    'register_index': 5,
+    'multiplier': 0.1
+  },
+  'load_current': {
+    'register_index': 9,
+    'multiplier': 1.0
+  },
+  'load_level': {
+    'register_index': 12,
+    'multiplier': 1.0
+  },
+  'output_power': {
+    'register_index': 10,
+    'multiplier': 1.0
+  },
+  'output_voltage': {
+    'register_index': 7,
+    'multiplier': 0.1
+  },
+  'ups_temperature': {
+    'register_index': 18,
+    'multiplier': 1.0
+  }
+}
 
-def name(sensor_name, prefix='EP30 ', suffix=''):
-  return prefix + sensor_name + suffix
+backend    = 'mqtt'
+hostname   = '192.168.0.1'
+org        = 'home'
+password   = ''
+sensors    = [
+  'battery_level',
+  'battery_voltage',
+  'charging_current',
+  'input_voltage', 
+  'load_current',
+  'load_level',
+  'output_power',
+  'output_voltage',
+  'ups_temperature'
+]
 
-def publish_multiple(msgs):
-  try:
-    publish.multiple(msgs=msgs, hostname=hostname, auth=auth)
-  except Exception as e:
-    print(e)
+sleep_time = 1
+username   = 'admin'
+
+address  = 30000
+baud     = 9600
+id       = 10
+length   = 26
+model    = 'EP3000'
+order    = Endian.Little
+parity   = 'N'
+stopbits = 1
+
+# If True - do not send data to mqtt brocker just print all parameters
+# listed in 'attributes'
+debug = False
+
+c_boost_voltage = 28.8
+c_empty_voltage = 21.0
+c_float_current = 27.0
+c_full_voltage  = 27.2
+d_empty_voltage = 21.0
+d_full_voltage  = 25.6
+
+if ( isfile('configuration.yaml') ):
+  with open("configuration.yaml", 'r') as stream:
+    configuration = safe_load(stream)
+
+  debug      = configuration['debug']
+  backend    = configuration['backend']
+  sensors    = configuration['sensors']
+  sleep_time = configuration['run']['sleep_time']
+  c_boost_voltage = configuration['charge_config']['boost_voltage']
+  c_empty_voltage = configuration['charge_config']['empty_voltage']
+  c_float_current = configuration['charge_config']['float_current']
+  c_full_voltage  = configuration['charge_config']['full_voltage']
+  d_empty_voltage = configuration['discharge_config']['empty_voltage']
+  d_full_voltage  = configuration['discharge_config']['full_voltage']
+
+  if (backend == 'mqtt'):
+    hostname = configuration['mqtt']['hostname']
+    auth     = None
+    if configuration['mqtt']['username'] and configuration['mqtt']['password']:
+      auth = {
+        'username': configuration['mqtt']['username'],
+        'password': configuration['mqtt']['password']
+      }
+  elif (backend == 'influx'):
+    hostname = configuration['influx']['hostname']
+    org      = configuration['influx']['org']
+    token    = configuration['influx']['token']
+    bucket   = configuration['influx']['bucket']
+
+if (backend == 'mqtt'):
+  sensors_definitions = []
+  for sensor in sensors:
+    match sensor:
+      case 'output_voltage':
+        sensors_definitions.append({
+          'topic': topic('output_voltage/config'),
+          'payload': dumps({
+            "name": name("Output Voltage"),
+            "device_class": "voltage",
+            "unit_of_measurement": "V",
+            "state_class": "measurement",
+            "state_topic": topic('output_voltage/state'),
+          })
+        })
+      case 'load_level':
+        sensors_definitions.append({
+          'topic': topic('load_level/config'),
+          'payload': dumps({
+            "name": name("Load Level"),
+            "unit_of_measurement": "%",
+            "state_class": "measurement",
+            "state_topic": topic('load_level/state'),
+          })
+        })
+      case 'input_voltage':
+        sensors_definitions.append({
+          'topic': topic('input_voltage/config'),
+          'payload': dumps({
+            "name": name("Input Voltage"),
+            "device_class": "voltage",
+            "unit_of_measurement": "V",
+            "state_class": "measurement",
+            "state_topic": topic('input_voltage/state'),
+          })
+        })
+      case 'battery_voltage':
+        sensors_definitions.append({
+          'topic': topic('battery_voltage/config'),
+          'payload': dumps({
+            "name": name("Battery Voltage"),
+            "device_class": "voltage",
+            "unit_of_measurement": "V",
+            "state_class": "measurement",
+            "state_topic": topic('battery_voltage/state'),
+          })
+        })
+      case 'ups_temperature':
+        sensors_definitions.append({
+          'topic': topic('ups_temperature/config'),
+          'payload': dumps({
+            "name": name("Inverter Temperature"),
+            "device_class": "temperature",
+            "unit_of_measurement": "°C",
+            "state_topic": topic('ups_temperature/state'),
+          })
+        })
+      case 'charging_current':
+        sensors_definitions.append({
+          'topic': topic('charging_current/config'),
+          'payload': dumps({
+            "name": name("Charging Current"),
+            "device_class": "current",
+            "unit_of_measurement": "A",
+            "state_class": "measurement",
+            "state_topic": topic('charging_current/state'),
+          })
+        })
+      case 'battery_level':
+        sensors_definitions.append({
+          'topic': topic('battery_level/config'),
+          'payload': dumps({
+            "name": name("Battery Level"),
+            "unit_of_measurement": "%",
+            "state_class": "measurement",
+            "state_topic": topic('battery_level/state'),
+          })
+        })
+      case 'output_power':
+        sensors_definitions.append({
+          'topic': topic('output_power/config'),
+          'payload': dumps({
+            "name": name("Output Power"),
+            "device_class": "power",
+            "unit_of_measurement": "W",
+            "state_class": "measurement",
+            "state_topic": topic('output_power/state'),
+          })
+        })
+      case 'load_current':
+        sensors_definitions.append({
+          'topic': topic('load_current/config'),
+          'payload': dumps({
+            "name": name("Load Current"),
+            "device_class": "current",
+            "unit_of_measurement": "A",
+            "state_class": "measurement",
+            "state_topic": topic('load_current/state'),
+          })
+        })
 
 
 client = ModbusSerialClient(
@@ -194,8 +399,8 @@ if not client.is_socket_open():
   print("not connected")
   exit(1)
 
-if ( debug == 'on' ):
-  result = client.read_holding_registers(address, length, slave=id)
+if debug:
+  result = client.read_holding_registers(address, length, slave = id)
   index = 0
   for register in result.registers:
     value = result.registers[index]
@@ -208,135 +413,70 @@ if ( debug == 'on' ):
     if ( last_index < index ):
       exit(0)
 
-while True:
-  sensors_definitions = [
-    {
-      'topic': topic('output_voltage/config'),
-      'payload': json.dumps({
-        "name": name("Output Voltage"),
-        "device_class": "voltage",
-        "unit_of_measurement": "V",
-        "state_class": "measurement",
-        "state_topic": topic('output_voltage/state'),
-      })
-    },
-    {
-      'topic': topic('load_level/config'),
-      'payload': json.dumps({
-        "name": name("Load Level"),
-        "unit_of_measurement": "%",
-        "state_class": "measurement",
-        "state_topic": topic('load_level/state'),
-      })
-    },
-    {
-      'topic': topic('input_voltage/config'),
-      'payload': json.dumps({
-        "name": name("Input Voltage"),
-        "device_class": "voltage",
-        "unit_of_measurement": "V",
-        "state_class": "measurement",
-        "state_topic": topic('input_voltage/state'),
-      })
-    },
-    {
-      'topic': topic('battery_voltage/config'),
-      'payload': json.dumps({
-        "name": name("Battery Voltage"),
-        "device_class": "voltage",
-        "unit_of_measurement": "V",
-        "state_class": "measurement",
-        "state_topic": topic('battery_voltage/state'),
-      })
-    },
-    {
-      'topic': topic('ups_temperature/config'),
-      'payload': json.dumps({
-        "name": name("Inverter Temperature"),
-        "device_class": "temperature",
-        "unit_of_measurement": "°C",
-        "state_topic": topic('ups_temperature/state'),
-      })
-    },
-    {
-      'topic': topic('charging_current/config'),
-      'payload': json.dumps({
-        "name": name("Charging Current"),
-        "device_class": "current",
-        "unit_of_measurement": "A",
-        "state_class": "measurement",
-        "state_topic": topic('charging_current/state'),
-      })
-    },
-    {
-      'topic': topic('battery_level/config'),
-      'payload': json.dumps({
-        "name": name("Battery Level"),
-        "unit_of_measurement": "%",
-        "state_class": "measurement",
-        "state_topic": topic('battery_level/state'),
-      })
-    },
-    {
-      'topic': topic('output_power/config'),
-      'payload': json.dumps({
-        "name": name("Output Power"),
-        "device_class": "power",
-        "unit_of_measurement": "W",
-        "state_class": "measurement",
-        "state_topic": topic('output_power/state'),
-      })
-    },
-  ]
-
+if (backend == 'mqtt'):
   publish_multiple(sensors_definitions)
+elif (backend == 'influx'):
+  try:
+    infl_client = InfluxDBClient(url = hostname, token = token, org = org)
+    write_api   = infl_client.write_api(write_options=SYNCHRONOUS)
+  except Exception as e:
+    print(e)
 
-  sensors_data = []
+while True:
+  if (backend == 'mqtt'):
+    sensors_data = []
+  elif (backend == 'influx'):
+    metric = Point('Modbus').tag('Device', 'EP3000')
 
-  result = client.read_holding_registers(address, length, slave=id)
+  result    = client.read_holding_registers(address, length, slave = id)
+  timestemp = time_ns()
 
-  input_voltage = format(round(result.registers[5] * 0.1, 1), '.1f')
-  output_voltage = format(round(result.registers[7] * 0.1, 1), '.1f')
-  output_power = result.registers[10]
-  load_level = result.registers[12]
-  battery_voltage = format(round(result.registers[14] * 0.1, 1), '.1f')
-  charging_current = format(round(result.registers[15] * 0.1, 1), '.1f')
-  battery_level = result.registers[17]
-  ups_temperature = result.registers[18]
+  for sensor in sensors:
+    match sensor:
+      case 'charging_current':
+        # Check if battery is discharging. If yes - charging_current parameter
+        # is irrelevant and shows some impossible numbers
+        if (result.registers[2] == 1):
+          charging_current = 0
+        else:
+          charging_current = get_sensor_data(sensor)
 
-  sensors_data.append({
-    'topic': topic('input_voltage/state'),
-    'payload': str(input_voltage)
-  })
-  sensors_data.append({
-    'topic': topic('output_voltage/state'),
-    'payload': str(output_voltage)
-  })
-  sensors_data.append({
-    'topic': topic('output_power/state'),
-    'payload': str(output_power)
-  })
-  sensors_data.append({
-    'topic': topic('load_level/state'),
-    'payload': str(load_level)
-  })
-  sensors_data.append({
-    'topic': topic('battery_voltage/state'),
-    'payload': str(battery_voltage)
-  })
-  sensors_data.append({
-    'topic': topic('charging_current/state'),
-    'payload': str(charging_current)
-  })
-  sensors_data.append({
-    'topic': topic('ups_temperature/state'),
-    'payload': str(ups_temperature)
-  })
-  sensors_data.append({
-    'topic': topic('battery_level/state'),
-    'payload': str(battery_level)
-  })
+        add_sensor_data(sensor, charging_current)
+        continue
 
-  publish_multiple(sensors_data)
+      case 'battery_level':
+        battery_voltage = get_sensor_data('battery_voltage')
+        charging_current = get_sensor_data('charging_current')
+        if ( result.registers[2] == 2 and
+          charging_current > float(configuration['charge_config']['float_current'])):
+          if battery_voltage > float(configuration['charge_config']['full_voltage']):
+            battery_level = ( 95.0 + (battery_voltage
+            - float(configuration['charge_config']['full_voltage']))
+            / (float(configuration['charge_config']['boost_voltage'])
+            - float(configuration['charge_config']['full_voltage']))
+            * 5.0 )
+          else:
+            battery_level = ( (battery_voltage
+            - float(configuration['charge_config']['empty_voltage']))
+            / (float(configuration['charge_config']['full_voltage'])
+            - float(configuration['charge_config']['empty_voltage']))
+            * 95.0 )
+        else:
+            if battery_voltage > float(configuration['discharge_config']['full_voltage']):
+              battery_level = 100.0
+            else:
+              battery_level = ( (battery_voltage
+              - float(configuration['discharge_config']['empty_voltage']))
+              / (float(configuration['discharge_config']['full_voltage'])
+              - float(configuration['discharge_config']['empty_voltage']))
+              * 100.0 )
 
-  time.sleep(1)
+        battery_level = round(battery_level, 1)
+        add_sensor_data(sensor, battery_level)
+        continue
+
+    add_sensor_data(sensor, get_sensor_data(sensor))
+
+  push_data()
+
+  sleep(sleep_time)

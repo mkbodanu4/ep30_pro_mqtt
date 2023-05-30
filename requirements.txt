@@ -1,0 +1,3 @@
+paho-mqtt
+pymodbus
+influxdb-client
