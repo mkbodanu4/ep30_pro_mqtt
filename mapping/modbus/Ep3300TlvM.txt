@@ -1,0 +1,484 @@
+﻿public static readonly int[] AffectedAttrs = new int[34]
+{
+  31000,
+  31001,
+  31002,
+  31003,
+  31004,
+  31005,
+  31006,
+  31007,
+  31009,
+  31014,
+  31015,
+  31020,
+  31021,
+  31022,
+  31023,
+  31100,
+  31101,
+  31111,
+  31112,
+  31113,
+  31114,
+  31115,
+  31116,
+  31200,
+  31201,
+  30014,
+  30015,
+  30030,
+  30036,
+  30037,
+  30031,
+  30041,
+  30042,
+  30032
+};
+public static readonly string[] GridFrequencyTypeArr = new string[2]
+{
+  "50Hz",
+  "60Hz"
+};
+public static readonly string[] BuzzerArr = new string[2]
+{
+  "Normal",
+  "Silence"
+};
+public static readonly string[] EnableGridChargeArr = new string[2]
+{
+  "Enable",
+  "Disable"
+};
+public static readonly string[] EnableBacklightArr = new string[2]
+{
+  "Disable",
+  "Enable"
+};
+public static readonly string[] OutputSourcePriorityArr = new string[2]
+{
+  "Grid",
+  "Battery"
+};
+public static readonly string[] AcInputVoltageRangeArr = new string[2]
+{
+  "Wide",
+  "Narrow"
+};
+public static readonly string[] PowerSavingModeEnableArr = new string[2]
+{
+  "Disable",
+  "Enable"
+};
+private static readonly string[] WorkStateArr = new string[8]
+{
+  "SELF_CHECK",
+  "BACKUP",
+  "LINE",
+  "STOP",
+  "DEBUG",
+  "SOFT_START",
+  "POWER_OFF",
+  "STANDBY"
+};
+private static readonly string[] BuzzerStateArr = new string[2]
+{
+  "Normal",
+  "Silence"
+};
+private static readonly string[] GridStateArr = new string[3]
+{
+  "No grid",
+  "Normal",
+  "Abnormal"
+};
+private static readonly Dictionary<int, string> SystemFaultArr = new Dictionary<int, string>()
+{
+  [1] = "Fan error",
+  [2] = "Over temperature",
+  [3] = "Battery voltage is too high",
+  [4] = "Battery voltage is too Low",
+  [5] = "Short",
+  [6] = "Inverter output voltage is high",
+  [7] = "Over load",
+  [11] = "Main relay failed",
+  [28] = "Rated load recognition failed",
+  [51] = "Over current",
+  [58] = "Inverter output voltage is low"
+};
+private static readonly string[] SystemWarnningArr = new string[16]
+{
+  "Inverter over temperature",
+  "Battery over temperature",
+  "Battery voltage is too high",
+  "Battery voltage is too Low",
+  "Over load",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  ""
+};
+
+[Modbus(30000, 1.0, false)]
+[NotMapped]
+public ushort MaChineType { get; set; }
+
+[Modbus(30001, 1.0, false)]
+[NotMapped]
+public ushort SoftwareVersion { get; set; }
+
+[Modbus(30002, 1.0, false)]
+[NotMapped]
+public ushort WorkState { get; set; }
+
+[Modbus(30003, 1.0, false)]
+[NotMapped]
+public ushort BatClass { get; set; }
+
+[Modbus(30004, 1.0, false)]
+[NotMapped]
+public ushort RatedPower { get; set; }
+
+[Modbus(30014, 0.1, false)]
+public double BatteryVoltage { get; set; }
+
+[Modbus(30015, 0.1, true)]
+public double BatteryCurrent { get; set; }
+
+[Modbus(30016, 1.0, true)]
+public short BatteryTEMP { get; set; }
+
+[Modbus(30017, 1.0, true)]
+public short BatterySOC { get; set; }
+
+[Modbus(30018, 1.0, true)]
+public short RadiatorTEMP { get; set; }
+
+[Modbus(30019, 1.0, false)]
+[NotMapped]
+public short TransformerTEMP { get; set; }
+
+[Modbus(30020, 1.0, false)]
+[NotMapped]
+public ushort BuzzerState { get; set; }
+
+[Modbus(30021, 1.0, false)]
+[NotMapped]
+public ushort SystemFaultID { get; set; }
+
+[Modbus(30022, 1.0, false)]
+[NotMapped]
+public ushort SystemAlarmID { get; set; }
+
+[Modbus(30024, 1.0, false)]
+[NotMapped]
+public ushort GridChargeFlag { get; set; }
+
+[Modbus(30025, 1.0, false)]
+[NotMapped]
+public ushort GridState { get; set; }
+
+[Modbus(30032, 0.1, false)]
+public double InputVoltage { get; set; }
+
+[Modbus(30033, 0.1, false)]
+public double InputFrequency { get; set; }
+
+[Modbus(30036, 0.1, false)]
+public double L1OutputVoltage { get; set; }
+
+[Modbus(30037, 0.1, false)]
+public double L1OutputCurrent { get; set; }
+
+[Modbus(30038, 1.0, true)]
+public short L1OutputPLoad { get; set; }
+
+[Modbus(30039, 1.0, true)]
+public short L1OutputSLoad { get; set; }
+
+[Modbus(30040, 1.0, true)]
+public short L1OuputLoadPercent { get; set; }
+
+[Modbus(30041, 0.1, false)]
+public double L2OutputVoltage { get; set; }
+
+[Modbus(30042, 0.1, false)]
+public double L2OutputCurrent { get; set; }
+
+[Modbus(30043, 1.0, true)]
+public short L2OutputPLoad { get; set; }
+
+[Modbus(30044, 1.0, true)]
+public short L2OutputSLoad { get; set; }
+
+[Modbus(30045, 1.0, true)]
+public short L2OutputLoadPercent { get; set; }
+
+[Modbus(30046, 0.1, false)]
+public double L12OutputVoltage { get; set; }
+
+[Modbus(30047, 0.1, false)]
+public double OutputFrequency { get; set; }
+
+[Modbus(30048, 1.0, true)]
+public short TotalPLoad { get; set; }
+
+[Modbus(30049, 1.0, true)]
+public short TotalSLoad { get; set; }
+
+[Modbus(30050, 1.0, false)]
+[NotMapped]
+public ushort TotalLoadPercent { get; set; }
+
+[Modbus(31000, 1.0, false)]
+[NotMapped]
+public ushort GridFrequencyType { get; set; }
+
+[Modbus(31001, 1.0, false)]
+[NotMapped]
+public ushort GridVoltageType { get; set; }
+
+[Modbus(31002, 0.1, false)]
+[NotMapped]
+public double ShutdownVoltage { get; set; }
+
+[Modbus(31003, 0.1, false)]
+[NotMapped]
+public double AbsorptionChargeVoltage { get; set; }
+
+[Modbus(31004, 0.1, false)]
+[NotMapped]
+public double FloatChargeVoltage { get; set; }
+
+[Modbus(31005, 1.0, false)]
+[NotMapped]
+public ushort BulkCurrent { get; set; }
+
+[Modbus(31006, 1.0, false)]
+[NotMapped]
+public ushort Buzzer { get; set; }
+
+[Modbus(31007, 1.0, false)]
+[NotMapped]
+public ushort EnableGridCharge { get; set; }
+
+[Modbus(31009, 1.0, false)]
+[NotMapped]
+public ushort EnableBacklight { get; set; }
+
+[Modbus(31014, 0.1, false)]
+[NotMapped]
+public double Point2Inv { get; set; }
+
+[Modbus(31015, 0.1, false)]
+[NotMapped]
+public double Point2Grid { get; set; }
+
+[Modbus(31020, 1.0, false)]
+[NotMapped]
+public ushort PowerSavingModeEnable { get; set; }
+
+[Modbus(31021, 1.0, false)]
+[NotMapped]
+public ushort SearchTime { get; set; }
+
+[Modbus(31022, 1.0, false)]
+[NotMapped]
+public ushort OutputSourcePriority { get; set; }
+
+[Modbus(31023, 1.0, false)]
+[NotMapped]
+public ushort ACInputVoltageRange { get; set; }
+
+[Modbus(31100, 1.0, false)]
+[NotMapped]
+public ushort BatteryVoltageCalibrationCoefficient { get; set; }
+
+[Modbus(31101, 1.0, false)]
+[NotMapped]
+public ushort BatteryCurrentCalibrationCoefficient { get; set; }
+
+[Modbus(31111, 1.0, false)]
+[NotMapped]
+public ushort L1InputVoltageCalibrationCoefficient { get; set; }
+
+[Modbus(31112, 1.0, false)]
+[NotMapped]
+public ushort L1OutputVoltageCalibrationCoefficient { get; set; }
+
+[Modbus(31113, 1.0, false)]
+[NotMapped]
+public ushort L1LoadCurrentCalibrationCoefficient { get; set; }
+
+[Modbus(31114, 1.0, false)]
+[NotMapped]
+public ushort L2InputVoltageCalibrationCoefficient { get; set; }
+
+[Modbus(31115, 1.0, false)]
+[NotMapped]
+public ushort L2OutputVoltageCalibrationCoefficient { get; set; }
+
+[Modbus(31116, 1.0, false)]
+[NotMapped]
+public ushort L2LoadCurrentCalibrationCoefficient { get; set; }
+
+[Modbus(31200, 1.0, false)]
+[NotMapped]
+public ushort InverterSerialNumberHigh { get; set; }
+
+[Modbus(31201, 1.0, false)]
+[NotMapped]
+public ushort InverterSerialNumberLow { get; set; }
+
+public string MachineTypeStr { get; set; } = "Ep3300TLV";
+
+public string SoftwareVersionStr { get; set; }
+
+public string WorkStateStr { get; set; }
+
+public string BuzzerStateStr { get; set; }
+
+public string SystemFault { get; set; }
+
+public string SystemAlarm { get; set; }
+
+public string GridStateStr { get; set; }
+
+public string SerialNumbe { get; set; }
+
+[NotMapped]
+public PartState PvState { get; set; }
+
+[NotMapped]
+public CurState PvCur { get; set; } = CurState.None;
+
+[NotMapped]
+public PartState AcState { get; set; } = PartState.Disconnected;
+
+[NotMapped]
+public CurState AcCur { get; set; } = CurState.None;
+
+[NotMapped]
+public PartState Load1State { get; set; } = PartState.Disconnected;
+
+[NotMapped]
+public CurState Load1Cur { get; set; } = CurState.None;
+
+[NotMapped]
+public PartState Load2State { get; set; } = PartState.Disconnected;
+
+[NotMapped]
+public CurState Load2Cur { get; set; } = CurState.None;
+
+[NotMapped]
+public PartState BatState { get; set; } = PartState.Disconnected;
+
+[NotMapped]
+public CurState BatCur { get; set; } = CurState.None;
+
+[NotMapped]
+public PartState CoreState { get; set; } = PartState.Connected;
+
+protected override void Animation()
+{
+  PartState partState1;
+  PartState partState2 = partState1 = PartState.Disconnected;
+  CurState curState1;
+  CurState curState2 = curState1 = CurState.None;
+  if (this.WorkState == (ushort) 2)
+  {
+    partState2 = PartState.Connected;
+    curState2 = CurState.Discharge;
+  }
+  switch (this.GridState)
+  {
+    case 0:
+      partState2 = PartState.Disconnected;
+      break;
+    case 1:
+      partState2 = PartState.Connected;
+      break;
+    case 2:
+      partState2 = PartState.Warning;
+      break;
+  }
+  PartState partState3;
+  CurState curState3;
+  if (this.L1OutputSLoad > (short) 0)
+  {
+    partState3 = PartState.Connected;
+    curState3 = CurState.Charge;
+  }
+  else
+  {
+    partState3 = PartState.Disconnected;
+    curState3 = CurState.None;
+  }
+  PartState partState4;
+  CurState curState4;
+  if (this.L2OutputSLoad > (short) 0)
+  {
+    partState4 = PartState.Connected;
+    curState4 = CurState.Charge;
+  }
+  else
+  {
+    partState4 = PartState.Disconnected;
+    curState4 = CurState.None;
+  }
+  PartState partState5 = PartState.Connected;
+  CurState curState5 = this.GridChargeFlag == (ushort) 1 ? CurState.Charge : CurState.Discharge;
+  PartState partState6 = this.WorkState == (ushort) 3 ? PartState.Warning : PartState.Connected;
+  if (this.SystemFaultID != (ushort) 0)
+  {
+    partState6 = PartState.Warning;
+    if (this.SystemFault.Contains(Ep3300TlvM.SystemFaultArr[3]) || this.SystemFault.Contains(Ep3300TlvM.SystemFaultArr[4]))
+      partState5 = PartState.Warning;
+    if (this.SystemFault.Contains(Ep3300TlvM.SystemFaultArr[7]))
+    {
+      if (this.L1OuputLoadPercent > (short) 100)
+        partState3 = PartState.Warning;
+      if (this.L2OutputLoadPercent > (short) 100)
+        partState4 = PartState.Warning;
+    }
+  }
+  if (this.SystemAlarmID != (ushort) 0)
+  {
+    partState6 = PartState.Warning;
+    if (this.SystemAlarm.Contains(Ep3300TlvM.SystemWarnningArr[3]) || this.SystemAlarm.Contains(Ep3300TlvM.SystemWarnningArr[1]) || this.SystemAlarm.Contains(Ep3300TlvM.SystemWarnningArr[2]))
+      partState5 = PartState.Warning;
+    if (this.SystemAlarm.Contains(Ep3300TlvM.SystemWarnningArr[4]))
+    {
+      if (this.L1OuputLoadPercent > (short) 100)
+        partState3 = PartState.Warning;
+      if (this.L2OutputLoadPercent > (short) 100)
+        partState4 = PartState.Warning;
+    }
+  }
+  this.AcState = partState2;
+  this.AcCur = curState2;
+  this.Load1State = partState3;
+  this.Load1Cur = curState3;
+  this.Load2State = partState4;
+  this.Load2Cur = curState4;
+  this.BatState = partState5;
+  this.BatCur = curState5;
+  this.CoreState = partState6;
+}
+
+protected override void Parse()
+{
+  this.WorkStateStr = Helper.ModbusValueConvter<string[]>(new int?((int) this.WorkState), Ep3300TlvM.WorkStateArr);
+  this.BuzzerStateStr = Helper.ModbusValueConvter<string[]>(new int?((int) this.BuzzerState), Ep3300TlvM.BuzzerStateArr);
+  this.SystemFault = this.SystemFaultID != (ushort) 0 ? Helper.ModbusValueConvter<Dictionary<int, string>>(new int?((int) this.SystemFaultID), Ep3300TlvM.SystemFaultArr) : string.Empty;
+  this.SystemAlarm = this.SystemAlarmID != (ushort) 0 ? Helper.ModbusValueConvter<string[]>(new int?((int) this.SystemAlarmID), Ep3300TlvM.SystemWarnningArr, true) : string.Empty;
+  this.GridStateStr = Helper.ModbusValueConvter<string[]>(new int?((int) this.GridState), Ep3300TlvM.GridStateArr);
+  this.SoftwareVersionStr = this.SoftwareVersion.ToString().Length != 5 ? this.SoftwareVersion.ToString() : "166-00" + this.SoftwareVersion.ToString().Substring(0, 3) + "-" + this.SoftwareVersion.ToString().Substring(3, 2);
+}

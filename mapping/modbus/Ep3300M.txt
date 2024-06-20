@@ -1,0 +1,859 @@
+﻿public static readonly string[] GridFrequencyTypeArr = new string[2]
+{
+  "50Hz",
+  "60Hz"
+};
+public static readonly string[] BuzzerArr = new string[2]
+{
+  "Normal",
+  "Silence"
+};
+public static readonly string[] EnableGridChargeArr = new string[2]
+{
+  "Enable",
+  "Disable"
+};
+public static readonly string[] EnableBacklightArr = new string[2]
+{
+  "Disable",
+  "Enable"
+};
+public static readonly string[] OutputSourcePriorityArr = new string[2]
+{
+  "Grid",
+  "Battery"
+};
+public static readonly string[] AcInputVoltageRangeArr = new string[2]
+{
+  "Wide",
+  "Narrow"
+};
+public static readonly string[] PowerSavingModeEnableArr = new string[2]
+{
+  "Disable",
+  "Enable"
+};
+public static readonly int[] GridVoltageTypeArr = new int[6]
+{
+  110,
+  115,
+  120,
+  220,
+  230,
+  240
+};
+public static readonly int[] SearchTimeArr = new int[2]
+{
+  5,
+  30
+};
+public static readonly int[] AffectAddress = new int[27]
+{
+  31000,
+  31001,
+  31002,
+  31003,
+  31004,
+  31005,
+  31006,
+  31007,
+  31009,
+  31014,
+  31015,
+  31020,
+  31021,
+  31022,
+  31023,
+  31001,
+  31100,
+  31101,
+  31102,
+  31103,
+  31104,
+  31108,
+  30009,
+  30007,
+  30005,
+  30015,
+  30014
+};
+private readonly string[] _chargeStage = new string[3]
+{
+  "cc",
+  "cv",
+  "fv"
+};
+private readonly string[] _gridChargeFlag = new string[2]
+{
+  "Grid no charge",
+  "Grid charge"
+};
+private readonly string[] _machineType = new string[4]
+{
+  "EP2000PRO",
+  "",
+  "PV2000PRO",
+  "EP3300"
+};
+private readonly string[] _systemAlarmId = new string[16]
+{
+  "inverter over temperature",
+  "battery over temperature",
+  "Battery voltage is too high",
+  "Battery voltage is too Low",
+  "Over load",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  ""
+};
+private readonly Dictionary<int, string> _systemFaultId = new Dictionary<int, string>()
+{
+  [0] = string.Empty,
+  [1] = "fan error",
+  [2] = "Over temperature",
+  [3] = "Battery voltage is too high",
+  [4] = "Battery voltage is too Low",
+  [5] = "short",
+  [6] = "Inverter output voltage is high",
+  [7] = "Over load",
+  [11] = "Main relay failed",
+  [28] = "rated load recognition failed",
+  [41] = "Inverter grid voltage is low",
+  [42] = "Inverter grid voltage is high",
+  [43] = "Inverter grid under frequency",
+  [44] = "Inverter grid over frequency",
+  [51] = "Over current",
+  [58] = "Inverter output voltage is low"
+};
+private readonly string[] _workState = new string[9]
+{
+  "SELF_CHECK",
+  "BACKUP",
+  "LINE",
+  "STOP",
+  "CHARGER",
+  "SOFT_START",
+  "POWER_OFF",
+  "STANDBY",
+  "DEBUG"
+};
+private short? _batClass;
+private double? _batteryCurrent;
+private double? _batterySoc;
+private short? _batteryTemperature;
+private double? _batteryVoltage;
+private string _buzzerState;
+private string _chargeStage1;
+private string _gridChargeFlag1;
+private double? _gridFrequency;
+private short? _gridState;
+private double? _gridVoltage;
+private double? _loadCurrent;
+private short? _loadPercent;
+private short? _loadPower;
+private string _machineType1;
+private double? _outputFrequency;
+private double? _outputVoltage;
+private short? _ratedPower;
+private string _softwareVersion;
+private short? _transformerTemp;
+private string _workState1;
+private string _err;
+
+protected override void Animation()
+{
+  VarDevicePartsStates devicePartsStates1 = new VarDevicePartsStates()
+  {
+    PvState = PartState.Unsupported,
+    AcState = PartState.Disconnected,
+    LoadState = PartState.Disconnected
+  };
+  short? nullable1 = this.WorkStateI;
+  int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num1 = 7;
+  if (nullable2.GetValueOrDefault() == num1 & nullable2.HasValue)
+    devicePartsStates1.LoadState = devicePartsStates1.BattState = PartState.Connected;
+  nullable1 = this.WorkStateI;
+  int? nullable3 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num2 = 2;
+  if (nullable3.GetValueOrDefault() == num2 & nullable3.HasValue)
+  {
+    devicePartsStates1.AcState = PartState.Connected;
+    devicePartsStates1.AcCur = CurState.Discharge;
+  }
+  nullable1 = this.GridState;
+  if (nullable1.HasValue)
+  {
+    switch (nullable1.GetValueOrDefault())
+    {
+      case 0:
+        devicePartsStates1.AcState = PartState.Disconnected;
+        break;
+      case 1:
+        devicePartsStates1.AcState = PartState.Connected;
+        break;
+      case 2:
+        devicePartsStates1.AcState = PartState.Warning;
+        break;
+    }
+  }
+  VarDevicePartsStates devicePartsStates2 = devicePartsStates1;
+  nullable1 = this.GridChargeFlagI;
+  int? nullable4 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num3 = 1;
+  int num4 = nullable4.GetValueOrDefault() == num3 & nullable4.HasValue ? 1 : 0;
+  devicePartsStates2.BattCur = (CurState) num4;
+  nullable1 = this.WorkStateI;
+  int? nullable5 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num5 = 1;
+  if (!(nullable5.GetValueOrDefault() == num5 & nullable5.HasValue))
+  {
+    nullable1 = this.WorkStateI;
+    int? nullable6 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    int num6 = 2;
+    if (!(nullable6.GetValueOrDefault() == num6 & nullable6.HasValue))
+      goto label_13;
+  }
+  nullable1 = this.LoadPower;
+  int? nullable7 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num7 = 0;
+  if (nullable7.GetValueOrDefault() > num7 & nullable7.HasValue)
+  {
+    devicePartsStates1.LoadState = PartState.Connected;
+    devicePartsStates1.LoadCur = CurState.Charge;
+    goto label_14;
+  }
+label_13:
+  devicePartsStates1.LoadState = PartState.Disconnected;
+  devicePartsStates1.LoadCur = CurState.None;
+label_14:
+  nullable1 = this.WorkStateI;
+  int? nullable8 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num8 = 3;
+  if (nullable8.GetValueOrDefault() == num8 & nullable8.HasValue)
+    devicePartsStates1.CoreState = PartState.Warning;
+  nullable1 = this.SystemFaultId;
+  int? nullable9 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num9 = 0;
+  if (!(nullable9.GetValueOrDefault() == num9 & nullable9.HasValue))
+  {
+    devicePartsStates1.CoreState = PartState.Warning;
+    if (this.Err.Contains(this._systemFaultId[3]) || this.Err.Contains(this._systemFaultId[4]))
+      devicePartsStates1.BattState = PartState.Warning;
+    if (this.Err.Contains(this._systemFaultId[7]))
+      devicePartsStates1.LoadState = PartState.Warning;
+    if (this.Err.Contains(this._systemFaultId[41]) || this.Err.Contains(this._systemFaultId[42]) || this.Err.Contains(this._systemFaultId[43]) || this.Err.Contains(this._systemFaultId[44]))
+      devicePartsStates1.AcState = PartState.Warning;
+  }
+  nullable1 = this.SystemAlarmId;
+  int? nullable10 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num10 = 0;
+  if (!(nullable10.GetValueOrDefault() == num10 & nullable10.HasValue))
+  {
+    devicePartsStates1.CoreState = PartState.Warning;
+    if (this.Err.Contains(this._systemAlarmId[3]) || this.Err.Contains(this._systemAlarmId[1]) || this.Err.Contains(this._systemAlarmId[2]))
+      devicePartsStates1.BattState = PartState.Warning;
+    if (this.Err.Contains(this._systemAlarmId[4]))
+      devicePartsStates1.LoadState = PartState.Warning;
+  }
+  this.DevicesStates = devicePartsStates1;
+}
+
+protected override void Parse()
+{
+  short? nullable1 = this.MachineTypeI;
+  this.MachineType = Helper.ModbusValueConvter<string[]>(nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?(), this._machineType);
+  nullable1 = this.SoftwareVersionI;
+  int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  this.SoftwareVersion = !nullable2.HasValue || nullable2.ToString().Length != 5 ? "" : "166-00" + nullable2.ToString().Substring(0, 3) + "-" + nullable2.ToString().Substring(3, 2);
+  nullable1 = this.WorkStateI;
+  this.WorkState = Helper.ModbusValueConvter<string[]>(nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?(), this._workState);
+  nullable1 = this.ChargeStageI;
+  this.ChargeStage = Helper.ModbusValueConvter<string[]>(nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?(), this._chargeStage);
+  nullable1 = this.GridChargeFlagI;
+  this.GridChargeFlag = Helper.ModbusValueConvter<string[]>(nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?(), this._gridChargeFlag);
+  nullable1 = this.InverterSerialNumberHigh;
+  string str1 = nullable1.ToString().PadLeft(5, '0');
+  nullable1 = this.InverterSerialNumberLow;
+  string str2 = nullable1.ToString().PadLeft(5, '0');
+  this.SerialNumber = str1 + str2;
+  nullable1 = this.BuzzerStateI;
+  int? nullable3 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+  int num = 0;
+  this.BuzzerState = nullable3.GetValueOrDefault() == num & nullable3.HasValue ? "Normal" : "Silence";
+  nullable1 = this.SystemAlarmId;
+  int? number1;
+  if (!nullable1.HasValue)
+  {
+    nullable3 = new int?();
+    number1 = nullable3;
+  }
+  else
+    number1 = new int?((int) nullable1.GetValueOrDefault());
+  string[] systemAlarmId = this._systemAlarmId;
+  string alarm = Helper.ModbusValueConvter<string[]>(number1, systemAlarmId, true);
+  nullable1 = this.SystemFaultId;
+  int? number2;
+  if (!nullable1.HasValue)
+  {
+    nullable3 = new int?();
+    number2 = nullable3;
+  }
+  else
+    number2 = new int?((int) nullable1.GetValueOrDefault());
+  Dictionary<int, string> systemFaultId = this._systemFaultId;
+  string fault = Helper.ModbusValueConvter<Dictionary<int, string>>(number2, systemFaultId);
+  this.Err = this.GetErr(alarm, fault);
+}
+
+private string GetErr(string alarm, string fault)
+{
+  string err = string.Empty;
+  if (!string.IsNullOrEmpty(alarm))
+    err = "Alarm:" + alarm + Environment.NewLine;
+  if (!string.IsNullOrEmpty(fault))
+    err = err + "Fault:" + fault;
+  return err;
+}
+
+public override string ToString() => DeviceType.Ep3300.ToString();
+
+[Modbus(30000, 1.0, true)]
+[NotMapped]
+public short? MachineTypeI { get; set; }
+
+[Modbus(30001, 1.0, true)]
+[NotMapped]
+public short? SoftwareVersionI { get; set; }
+
+[Modbus(30002, 1.0, true)]
+[NotMapped]
+public short? WorkStateI { get; set; }
+
+[Modbus(30003, 1.0, true)]
+[Display(Name = "BatClass")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[Column(Order = 3)]
+public short? BatClass
+{
+  get => this._batClass;
+  set
+  {
+    short? nullable1 = value;
+    int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    short? batClass = this._batClass;
+    int? nullable3 = batClass.HasValue ? new int?((int) batClass.GetValueOrDefault()) : new int?();
+    if (nullable2.GetValueOrDefault() == nullable3.GetValueOrDefault() & nullable2.HasValue == nullable3.HasValue)
+      return;
+    this._batClass = value;
+    this.OnPropertyChanged(nameof (BatClass));
+  }
+}
+
+[Modbus(30004, 1.0, true)]
+[Display(Name = "Rated power")]
+[DisplayFormat(DataFormatString = "{0} W")]
+[Column(Order = 4)]
+public short? RatedPower
+{
+  get => this._ratedPower;
+  set
+  {
+    short? nullable1 = value;
+    int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    short? ratedPower = this._ratedPower;
+    int? nullable3 = ratedPower.HasValue ? new int?((int) ratedPower.GetValueOrDefault()) : new int?();
+    if (nullable2.GetValueOrDefault() == nullable3.GetValueOrDefault() & nullable2.HasValue == nullable3.HasValue)
+      return;
+    this._ratedPower = value;
+    this.OnPropertyChanged(nameof (RatedPower));
+  }
+}
+
+[Modbus(30005, 0.1, true)]
+[Display(Name = "Grid voltage")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[Column(Order = 7)]
+public double? GridVoltage
+{
+  get => this._gridVoltage;
+  set
+  {
+    if (value.Equals((object) this._gridVoltage))
+      return;
+    this._gridVoltage = value;
+    this.OnPropertyChanged(nameof (GridVoltage));
+  }
+}
+
+[Modbus(30006, 0.1, true)]
+[Display(Name = "Grid frequency")]
+[DisplayFormat(DataFormatString = "{0} HZ")]
+[Column(Order = 8)]
+public double? GridFrequency
+{
+  get => this._gridFrequency;
+  set
+  {
+    if (value.Equals((object) this._gridFrequency))
+      return;
+    this._gridFrequency = value;
+    this.OnPropertyChanged(nameof (GridFrequency));
+  }
+}
+
+[Modbus(30007, 0.1, true)]
+[Display(Name = "Output Voltage")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[Column(Order = 9)]
+public double? OutputVoltage
+{
+  get => this._outputVoltage;
+  set
+  {
+    if (value.Equals((object) this._outputVoltage))
+      return;
+    this._outputVoltage = value;
+    this.OnPropertyChanged(nameof (OutputVoltage));
+  }
+}
+
+[Modbus(30008, 0.1, true)]
+[Display(Name = "Output Frequency")]
+[DisplayFormat(DataFormatString = "{0} HZ")]
+[Column(Order = 10)]
+public double? OutputFrequency
+{
+  get => this._outputFrequency;
+  set
+  {
+    if (value.Equals((object) this._outputFrequency))
+      return;
+    this._outputFrequency = value;
+    this.OnPropertyChanged(nameof (OutputFrequency));
+  }
+}
+
+[Modbus(30009, 0.1, true)]
+[Display(Name = "Load current")]
+[DisplayFormat(DataFormatString = "{0} A")]
+[Column(Order = 11)]
+public double? LoadCurrent
+{
+  get => this._loadCurrent;
+  set
+  {
+    if (value.Equals((object) this._loadCurrent))
+      return;
+    this._loadCurrent = value;
+    this.OnPropertyChanged(nameof (LoadCurrent));
+  }
+}
+
+[Modbus(30010, 1.0, true)]
+[Display(Name = "Load Power")]
+[DisplayFormat(DataFormatString = "{0} W")]
+[Column(Order = 12)]
+public short? LoadPower
+{
+  get => this._loadPower;
+  set
+  {
+    short? nullable1 = value;
+    int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    short? loadPower = this._loadPower;
+    int? nullable3 = loadPower.HasValue ? new int?((int) loadPower.GetValueOrDefault()) : new int?();
+    if (nullable2.GetValueOrDefault() == nullable3.GetValueOrDefault() & nullable2.HasValue == nullable3.HasValue)
+      return;
+    this._loadPower = value;
+    this.OnPropertyChanged(nameof (LoadPower));
+  }
+}
+
+[Modbus(30012, 1.0, true)]
+[Display(Name = "Load percent")]
+[DisplayFormat(DataFormatString = "{0} %")]
+[Column(Order = 13)]
+public short? LoadPercent
+{
+  get => this._loadPercent;
+  set
+  {
+    short? nullable1 = value;
+    int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    short? loadPercent = this._loadPercent;
+    int? nullable3 = loadPercent.HasValue ? new int?((int) loadPercent.GetValueOrDefault()) : new int?();
+    if (nullable2.GetValueOrDefault() == nullable3.GetValueOrDefault() & nullable2.HasValue == nullable3.HasValue)
+      return;
+    this._loadPercent = value;
+    this.OnPropertyChanged(nameof (LoadPercent));
+  }
+}
+
+[Modbus(30014, 0.1, true)]
+[Display(Name = "Battery Voltage")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[Column(Order = 14)]
+public double? BatteryVoltage
+{
+  get => this._batteryVoltage;
+  set
+  {
+    if (value.Equals((object) this._batteryVoltage))
+      return;
+    this._batteryVoltage = value;
+    this.OnPropertyChanged(nameof (BatteryVoltage));
+  }
+}
+
+[Modbus(30015, 0.1, true)]
+[Display(Name = "Battery current")]
+[DisplayFormat(DataFormatString = "{0} A")]
+[Column(Order = 15)]
+public double? BatteryCurrent
+{
+  get => this._batteryCurrent;
+  set
+  {
+    if (value.Equals((object) this._batteryCurrent))
+      return;
+    this._batteryCurrent = value;
+    this.OnPropertyChanged(nameof (BatteryCurrent));
+  }
+}
+
+[Modbus(30016, 1.0, true)]
+[Display(Name = "Battery temperature")]
+[DisplayFormat(DataFormatString = "{0} ℃")]
+[Column(Order = 17)]
+public short? BatteryTemperature
+{
+  get => this._batteryTemperature;
+  set
+  {
+    short? nullable1 = value;
+    int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    short? batteryTemperature = this._batteryTemperature;
+    int? nullable3 = batteryTemperature.HasValue ? new int?((int) batteryTemperature.GetValueOrDefault()) : new int?();
+    if (nullable2.GetValueOrDefault() == nullable3.GetValueOrDefault() & nullable2.HasValue == nullable3.HasValue)
+      return;
+    this._batteryTemperature = value;
+    this.OnPropertyChanged(nameof (BatteryTemperature));
+  }
+}
+
+[Modbus(30017, 1.0, true)]
+[Display(Name = "Battery SOC")]
+[DisplayFormat(DataFormatString = "{0} %")]
+[Column(Order = 16)]
+public double? BatterySoc
+{
+  get => this._batterySoc;
+  set
+  {
+    if (value.Equals((object) this._batterySoc))
+      return;
+    this._batterySoc = value;
+    this.OnPropertyChanged(nameof (BatterySoc));
+  }
+}
+
+[Modbus(30018, 1.0, true)]
+[Display(Name = "Transformer TEMP")]
+[DisplayFormat(DataFormatString = "{0} ℃")]
+[Column(Order = 18)]
+public short? TransformerTemp
+{
+  get => this._transformerTemp;
+  set
+  {
+    short? nullable1 = value;
+    int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    short? transformerTemp = this._transformerTemp;
+    int? nullable3 = transformerTemp.HasValue ? new int?((int) transformerTemp.GetValueOrDefault()) : new int?();
+    if (nullable2.GetValueOrDefault() == nullable3.GetValueOrDefault() & nullable2.HasValue == nullable3.HasValue)
+      return;
+    this._transformerTemp = value;
+    this.OnPropertyChanged(nameof (TransformerTemp));
+  }
+}
+
+[Modbus(30020, 1.0, true)]
+[NotMapped]
+public short? BuzzerStateI { get; set; }
+
+[Display(Name = "Buzzer State")]
+[Column(Order = 19)]
+public string BuzzerState
+{
+  get => this._buzzerState;
+  set
+  {
+    if (value == this._buzzerState)
+      return;
+    this._buzzerState = value;
+    this.OnPropertyChanged(nameof (BuzzerState));
+  }
+}
+
+[Modbus(30021, 1.0, true)]
+[NotMapped]
+public short? SystemFaultId { get; set; }
+
+[Modbus(30022, 1.0, true)]
+[NotMapped]
+public short? SystemAlarmId { get; set; }
+
+[Modbus(30023, 1.0, true)]
+[NotMapped]
+public short? ChargeStageI { get; set; }
+
+[Modbus(30024, 1.0, true)]
+[NotMapped]
+public short? GridChargeFlagI { get; set; }
+
+[Modbus(30025, 1.0, true)]
+[NotMapped]
+public short? GridState
+{
+  get => this._gridState;
+  set
+  {
+    short? nullable1 = value;
+    int? nullable2 = nullable1.HasValue ? new int?((int) nullable1.GetValueOrDefault()) : new int?();
+    short? gridState = this._gridState;
+    int? nullable3 = gridState.HasValue ? new int?((int) gridState.GetValueOrDefault()) : new int?();
+    if (nullable2.GetValueOrDefault() == nullable3.GetValueOrDefault() & nullable2.HasValue == nullable3.HasValue)
+      return;
+    this._gridState = value;
+    this.OnPropertyChanged(nameof (GridState));
+  }
+}
+
+[Modbus(31000, 1.0, true)]
+[Display(Name = "Grid frequency type")]
+[NotMapped]
+public short? GridFrequencyType { get; set; }
+
+[Modbus(31001, 1.0, true)]
+[Display(Name = "Grid voltage Type")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[NotMapped]
+public short? GridVoltageType { get; set; }
+
+[Modbus(31002, 0.1, true)]
+[Display(Name = "Shutdown voltage")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[NotMapped]
+public double? ShutdownVoltage { get; set; }
+
+[Modbus(31003, 0.1, true)]
+[Display(Name = "Absorption charge voltage")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[NotMapped]
+public double? AbsorptionChargeVoltage { get; set; }
+
+[Modbus(31004, 0.1, true)]
+[Display(Name = "Float Charge Voltage")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[NotMapped]
+public double? FloatChargeVoltage { get; set; }
+
+[Modbus(31005, 1.0, true)]
+[Display(Name = "Bulk Current")]
+[DisplayFormat(DataFormatString = "{0} A")]
+[NotMapped]
+public short? BulkCurrent { get; set; }
+
+[Modbus(31006, 1.0, true)]
+[Display(Name = "Buzzer")]
+[NotMapped]
+public short? Buzzer { get; set; }
+
+[Modbus(31007, 1.0, true)]
+[Display(Name = "Enable grid charge")]
+[NotMapped]
+public short? EnableGridCharge { get; set; }
+
+[Modbus(31009, 1.0, true)]
+[Display(Name = "Enable backlight")]
+[NotMapped]
+public short? EnableBacklight { get; set; }
+
+[Modbus(31014, 0.1, true)]
+[Display(Name = "Point2Inv")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[NotMapped]
+public double? Point2Inv { get; set; }
+
+[Modbus(31015, 0.1, true)]
+[Display(Name = "Point2Grid")]
+[DisplayFormat(DataFormatString = "{0} V")]
+[NotMapped]
+public double? Point2Grid { get; set; }
+
+[Modbus(31020, 1.0, true)]
+[Display(Name = "Power saving mode enable")]
+[NotMapped]
+public short? PowerSavingModeEnable { get; set; }
+
+[Modbus(31021, 1.0, true)]
+[Display(Name = "Search time")]
+[DisplayFormat(DataFormatString = "{0} S")]
+[NotMapped]
+public short? SearchTime { get; set; }
+
+[Modbus(31022, 1.0, true)]
+[Display(Name = "Output source priority")]
+[NotMapped]
+public short? OutputSourcePriority { get; set; }
+
+[Modbus(31023, 1.0, true)]
+[Display(Name = "AC input voltage range")]
+[NotMapped]
+public short? AcInputVoltageRange { get; set; }
+
+[Modbus(31100, 1.0, true)]
+[Display(Name = "Battery voltage calibration coefficient")]
+[NotMapped]
+public short? BatteryVoltageCalibrationCoefficient { get; set; }
+
+[Modbus(31101, 1.0, true)]
+[Display(Name = "Battery charge current calibration coefficient")]
+[NotMapped]
+public short? BatteryCurrentCalibrationCoefficient { get; set; }
+
+[Modbus(31102, 1.0, true)]
+[Display(Name = "Grid voltage calibration coefficient")]
+[NotMapped]
+public short? GridVoltageCalibrationCoefficient { get; set; }
+
+[Modbus(31103, 1.0, true)]
+[Display(Name = "220V Output voltage calibration coefficient")]
+[NotMapped]
+public short? OutputVoltageCalibrationCoefficient220V { get; set; }
+
+[Modbus(31104, 1.0, true)]
+[Display(Name = "Load current calibration coefficient")]
+[NotMapped]
+public short? LoadCurrentCalibrationCoefficient { get; set; }
+
+[Modbus(31108, 1.0, true)]
+[Display(Name = "110V Output voltage calibration coefficient")]
+[NotMapped]
+public short? OutputVoltageCalibrationCoefficient110V { get; set; }
+
+[Modbus(31200, 1.0, true)]
+[Display(Name = "Inverter Serial number High")]
+[NotMapped]
+public short? InverterSerialNumberHigh { get; set; }
+
+[Modbus(31201, 1.0, true)]
+[Display(Name = "Inverter Serial number Low")]
+[NotMapped]
+public short? InverterSerialNumberLow { get; set; }
+
+[NotMapped]
+public string SerialNumber { get; set; }
+
+[Modbus(32000, 1.0, true)]
+[Display(Name = "Restore factory settings")]
+[NotMapped]
+public short? RestoreFactorySettings { get; set; }
+
+[Modbus(32001, 1.0, true)]
+[Display(Name = "Remote reset")]
+[NotMapped]
+public short? RemoteReset { get; set; }
+
+[Display(Name = "Type of machine")]
+[Column(Order = 2)]
+public string MachineType
+{
+  get => this._machineType1;
+  set
+  {
+    if (value == this._machineType1)
+      return;
+    this._machineType1 = value;
+    this.OnPropertyChanged(nameof (MachineType));
+  }
+}
+
+[Display(Name = "Software version")]
+[NotMapped]
+public string SoftwareVersion
+{
+  get => this._softwareVersion;
+  set
+  {
+    if (value == this._softwareVersion)
+      return;
+    this._softwareVersion = value;
+    this.OnPropertyChanged(nameof (SoftwareVersion));
+  }
+}
+
+[Display(Name = "Work state")]
+[Column(Order = 6)]
+public string WorkState
+{
+  get => this._workState1;
+  set
+  {
+    if (value == this._workState1)
+      return;
+    this._workState1 = value;
+    this.OnPropertyChanged(nameof (WorkState));
+  }
+}
+
+[Display(Name = "Fault & Alarm")]
+[Column(Order = 5)]
+public string Err
+{
+  get => this._err;
+  set
+  {
+    if (value == this._err)
+      return;
+    this._err = value;
+    this.OnPropertyChanged(nameof (Err));
+  }
+}
+
+[Display(Name = "Charge Stage")]
+[NotMapped]
+public string ChargeStage
+{
+  get => this._chargeStage1;
+  set
+  {
+    if (value == this._chargeStage1)
+      return;
+    this._chargeStage1 = value;
+    this.OnPropertyChanged(nameof (ChargeStage));
+  }
+}
+
+[Display(Name = "Grid Charge Flag")]
+[NotMapped]
+public string GridChargeFlag
+{
+  get => this._gridChargeFlag1;
+  set
+  {
+    if (value == this._gridChargeFlag1)
+      return;
+    this._gridChargeFlag1 = value;
+    this.OnPropertyChanged(nameof (GridChargeFlag));
+  }
+}

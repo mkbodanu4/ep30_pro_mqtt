@@ -1,0 +1,11 @@
+﻿public Ep3000MainWorkerParam(string portName, string batType, int voltType)
+{
+  this.Port = new SerialPort()
+  {
+    PortName = portName,
+    BaudRate = 2400,
+    ReadTimeout = 1000,
+    WriteTimeout = 1000,
+    RtsEnable = true
+  };
+}

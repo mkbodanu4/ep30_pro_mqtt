@@ -1,0 +1,19 @@
+﻿switch ((WorkingMode) value)
+{
+case WorkingMode.InvertOnly:
+  return (object) "Inverting Mode";
+case WorkingMode.Bypass:
+  return (object) "Bypass Mode";
+case WorkingMode.BatteryPriority:
+  return (object) "Battery Priority Mode";
+case WorkingMode.GridFailAndInvert:
+  return (object) "AC power failed, entered inverting mode";
+case WorkingMode.GridAndInvertFail:
+  return (object) "";
+case WorkingMode.Fail:
+  return (object) "Fail";
+case WorkingMode.Common:
+  return (object) string.Empty;
+default:
+  return (object) string.Empty;
+}

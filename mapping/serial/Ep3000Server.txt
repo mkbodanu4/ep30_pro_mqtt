@@ -1,0 +1,52 @@
+﻿string data1 = this.GetData(sp, "Q1\r");
+string data2 = this.GetData(sp, "F\r");
+string data3 = this.GetData(sp, "G?\r");
+string data4 = this.GetData(sp, "X\r");
+if (!string.IsNullOrEmpty(data2) && data2.StartsWith("#") && data2.EndsWith("\r"))
+{
+double result;
+double.TryParse(data2.Substring(17, 4), out result);
+dataFromProt.LoadFrequency = result.ToString((IFormatProvider) CultureInfo.InvariantCulture);
+}
+if (!string.IsNullOrEmpty(data1) && data1.StartsWith("(") && data1.EndsWith("\r"))
+{
+int length = data1.Length;
+double result1;
+double.TryParse(data1.Substring(1, 5), out result1);
+double result2;
+double.TryParse(data1.Substring(7, 5), out result2);
+double result3;
+double.TryParse(data1.Substring(13, 5), out result3);
+double result4;
+double.TryParse(data1.Substring(19, 3), out result4);
+double result5;
+double.TryParse(data1.Substring(23, 4), out result5);
+double result6;
+double.TryParse(data1.Substring(28, 4), out result6);
+if (result1 == 0.0 && result2 == 0.0 && result3 == 0.0 && result4 == 0.0 && result5 == 0.0 && result6 == 0.0)
+  return (object) null;
+string str = data1.Substring(33, 4);
+char ch = str[0];
+double result7;
+double.TryParse(str.Substring(1, 3), out result7);
+dataFromProt.Temperature = ((double) (((int) ch - 48) * 10) + result7).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+dataFromProt.InputVoltage = result1.ToString((IFormatProvider) CultureInfo.InvariantCulture);
+dataFromProt.InputFaultVoltage = result2.ToString((IFormatProvider) CultureInfo.InvariantCulture);
+dataFromProt.OutputVoltage = result3.ToString((IFormatProvider) CultureInfo.InvariantCulture);
+dataFromProt.OutputCurrent = result4.ToString((IFormatProvider) CultureInfo.InvariantCulture);
+dataFromProt.InputFrequency = result5.ToString((IFormatProvider) CultureInfo.InvariantCulture);
+dataFromProt.BatteryVoltage = result6.ToString((IFormatProvider) CultureInfo.InvariantCulture);
+dataFromProt.UpsStatus = data1.Substring(38, 8);
+if (result3 < 2.0)
+  dataFromProt.LoadFrequency = "0";
+}
+if (!string.IsNullOrEmpty(data4) && data4.EndsWith("\n"))
+{
+string[] strArray = data4.Split(' ');
+dataFromProt.ChargeCurrent = (double) Convert.ToInt16(strArray[0], 16);
+}
+if (!string.IsNullOrEmpty(data3))
+{
+string str = data3.Replace("\r", "").Replace("\n", "");
+dataFromProt.Abnormity = str.Contains("Over Volage") ? "Battery Over Voltage" : str;
+}

@@ -1,66 +1,11 @@
-from json import dumps
-from os.path import isfile
-from time import sleep, time_ns
-from yaml import safe_load
-
-import paho.mqtt.publish as publish
-
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
-
 from pymodbus.constants import Endian
 from pymodbus.client import ModbusSerialClient
+from pymodbus.register_read_message import ReadHoldingRegistersResponse
+import logging
 
-
-def topic(name_value, component='sensor'):
-    return 'homeassistant/' + component + '/ep30_' + name_value
-
-
-def name(sensor_name, prefix='EP30 ', suffix=''):
-    return prefix + sensor_name + suffix
-
-
-def publish_multiple(msgs):
-    try:
-        publish.multiple(msgs=msgs, hostname=hostname, auth=auth)
-    except Exception as e:
-        print(e)
-
-
-def add_sensor_data(id, value):
-    if backend == 'mqtt':
-        sensors_data.append({
-            'topic': topic(str(id) + '/state'),
-            'payload': str(value)
-        })
-    elif backend == 'influx':
-        metric.field(name, float(value))
-
-
-def get_sensor_data(sensor):
-    if sensor is None:
-        return 0.0
-
-    value = result.registers[int(sensor['register_index'])]
-    if 'multiplier' in sensor:
-        value = value * float(sensor['multiplier'])
-
-    if 'options' in sensor:
-        value = sensor['options'][value]
-    elif 'prefix' in sensor:
-        value = sensor['prefix'] + str(value)
-    elif 'suffix' in sensor:
-        value = str(value) + sensor['suffix']
-    else:
-        value = float(format(round(value, 1), '.1f'))
-
-    return value
-
-
-def get_sensor_data_by_id(id):
-    return get_sensor_data(next(
-        (sensor for sensor in sensors if sensor['id'] == id),
-        None))
+logging.basicConfig()
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
 
 sensors = [
     {
@@ -98,7 +43,7 @@ sensors = [
         'register_index': 2,
         'multiplier': 1.0,
         'remoteId': 'WorkStateI',
-        'id': 'work_state',
+        'id': 'work state',
         'name': 'Work State',
         'options': {
             0: 'SELF_CHECK',
@@ -125,7 +70,7 @@ sensors = [
         'register_index': 4,
         'multiplier': 1.0,
         'remoteId': 'RatedPower',
-        'id': 'rated_power',
+        'id': 'rated power',
         'name': 'Rated Power',
         'unit_of_measurement': 'W',
         'device_class': 'power'
@@ -253,7 +198,7 @@ sensors = [
         'register_index': 20,
         'multiplier': 1.0,
         'remoteId': 'BuzzerStateI',
-        'id': 'buzzer_state',
+        'id': 'buzzer state',
         'name': 'Buzzer State',
         'options': {
             0: 'Normal',
@@ -267,7 +212,7 @@ sensors = [
         'id': 'system_fault',
         'name': 'System Fault',
         'options': {
-            0: "OK",
+            0: "",
             1: 'fan error',
             2: 'Over temperature',
             3: 'Battery voltage is too high',
@@ -292,12 +237,12 @@ sensors = [
         'id': 'system_alarm',
         'name': 'System Alarm',
         'options': {
-            0: "OK",
-            1: 'inverter over temperature',
-            2: 'battery over temperature',
-            3: 'Battery voltage is too high',
-            4: 'Battery voltage is too Low',
-            5: 'Over load',
+            0: 'inverter over temperature',
+            1: 'battery over temperature',
+            2: 'Battery voltage is too high',
+            3: 'Battery voltage is too Low',
+            4: 'Over load',
+            5: "",
             6: "",
             7: "",
             8: "",
@@ -307,8 +252,7 @@ sensors = [
             12: "",
             13: "",
             14: "",
-            15: "",
-            16: ""
+            15: ""
         }
     },
     {
@@ -348,15 +292,14 @@ sensors = [
     }
 ]
 
-# modbus
+address = 30000
 baud = 9600
+id = 10
+length = 26
+model = 'EP3000'
+order = Endian.LITTLE
 parity = 'N'
 stopbits = 1
-address = 30000
-slave_id = 10
-length = 26
-
-# All magic starts here
 
 client = ModbusSerialClient(
     port='/dev/ttyUSB0',
@@ -368,124 +311,32 @@ client = ModbusSerialClient(
 client.connect()
 
 if not client.is_socket_open():
-    print("Modbus not connected")
+    print("not connected")
     exit(1)
 
-if not isfile('configuration.yaml'):
-    print("Configuration file missing")
-    exit(1)
+result = client.read_holding_registers(address, length, slave=id)
 
-with open("configuration.yaml", 'r') as stream:
-    configuration = safe_load(stream)
 
-backend = configuration['backend']
-sleep_time = configuration['run']['sleep_time']
-sensors_definitions = []
+for sensor in sensors:
+    register_index = sensor['register_index']
+    
+    if register_index is None:
+        continue
+    
+    name = sensor['name']
 
-if backend == 'mqtt':
-    hostname = configuration['mqtt']['hostname']
-    auth = None
-    if configuration['mqtt']['username'] and configuration['mqtt']['password']:
-        auth = {
-            'username': configuration['mqtt']['username'],
-            'password': configuration['mqtt']['password']
-        }
+    value = result.registers[register_index]
+    if 'multiplier' in sensor:
+        value = value * sensor['multiplier']
+    if 'options' in sensor:
+        value = sensor['options'][value]
+    if 'prefix' in sensor:
+        value = sensor['prefix'] + str(value)
+    if 'suffix' in sensor:
+        value = str(value) + sensor['suffix']
 
-    for sensor in sensors:
-        payload = {
-            "name": name(sensor['name']),
-            "state_topic": topic(sensor['id'] + '/state'),
-        }
+    unit = ''
+    if 'unit_of_measurement' in sensor:
+        unit = sensor['unit_of_measurement']
 
-        if "device_class" in sensor:
-            payload["device_class"] = sensor['device_class']
-
-        if "unit_of_measurement" in sensor:
-            payload["unit_of_measurement"] = sensor['unit_of_measurement']
-
-        if "state_class" in sensor:
-            payload["state_class"] = sensor['state_class']
-
-        sensors_definitions.append({
-            'topic': topic(sensor['id'] + '/config'),
-            'payload': dumps(payload)
-        })
-
-        publish_multiple(sensors_definitions)
-elif backend == 'influx':
-    hostname = configuration['influx']['hostname']
-    org = configuration['influx']['org']
-    token = configuration['influx']['token']
-    bucket = configuration['influx']['bucket']
-
-    try:
-        infl_client = InfluxDBClient(url=hostname, token=token, org=org)
-        write_api = infl_client.write_api(write_options=SYNCHRONOUS)
-    except Exception as e:
-        print(e)
-
-while True:
-    sensors_data = []
-
-    if backend == 'influx':
-        metric = Point('Modbus').tag('Device', 'EP3000')
-
-    result = client.read_holding_registers(address, length, slave=slave_id)
-    timestamp = time_ns()
-
-    for sensor in sensors:
-        match sensor['id']:
-            case 'charging_current':
-                # Check if battery is discharging. If yes - charging_current parameter
-                # is irrelevant and shows some impossible numbers
-                if result.registers[2] == 1:
-                    charging_current = 0
-                else:
-                    charging_current = get_sensor_data(sensor)
-
-                add_sensor_data(sensor['id'], charging_current)
-                continue
-
-            case 'battery_level':
-                battery_voltage = get_sensor_data_by_id('battery_voltage')
-                charging_current = get_sensor_data_by_id('charging_current')
-                if (result.registers[2] == 2 and
-                        charging_current > float(configuration['charge_config']['float_current'])):
-                    if battery_voltage > float(configuration['charge_config']['full_voltage']):
-                        battery_level = (95.0 + (battery_voltage
-                                                 - float(configuration['charge_config']['full_voltage']))
-                                         / (float(configuration['charge_config']['boost_voltage'])
-                                            - float(configuration['charge_config']['full_voltage']))
-                                         * 5.0)
-                    else:
-                        battery_level = ((battery_voltage
-                                          - float(configuration['charge_config']['empty_voltage']))
-                                         / (float(configuration['charge_config']['full_voltage'])
-                                            - float(configuration['charge_config']['empty_voltage']))
-                                         * 95.0)
-                else:
-                    if battery_voltage > float(configuration['discharge_config']['full_voltage']):
-                        battery_level = 100.0
-                    else:
-                        battery_level = ((battery_voltage
-                                          - float(configuration['discharge_config']['empty_voltage']))
-                                         / (float(configuration['discharge_config']['full_voltage'])
-                                            - float(configuration['discharge_config']['empty_voltage']))
-                                         * 100.0)
-
-                battery_level = round(battery_level, 1)
-                add_sensor_data(sensor['id'], battery_level)
-                continue
-
-        add_sensor_data(sensor['id'], get_sensor_data(sensor))
-
-    if backend == 'mqtt':
-        publish_multiple(sensors_data)
-    elif backend == 'influx':
-        metric.time(timestamp)
-        try:
-            write_api.write(bucket=bucket, record=metric)
-        except Exception as e:
-            print(e)
-
-    sleep(sleep_time)
+    print(str(register_index) + ': ' + name + ' (' + unit + '): ' + str(value))
