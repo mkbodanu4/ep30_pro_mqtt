@@ -1,3 +1,5 @@
 paho-mqtt
 pymodbus
 influxdb-client
+pyyaml
+pyserial

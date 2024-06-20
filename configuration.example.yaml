@@ -5,14 +5,14 @@ run:
   sleep_time: 2
 
 discharge_config:
-  full_voltage: 12.8
-  empty_voltage: 10.5
+  full_voltage: 25.6  # 12.8
+  empty_voltage: 11.0  # 10.5
 
 charge_config:
-  float_current: 6.0
-  full_voltage: 13.6
-  boost_voltage: 14.4
-  empty_voltage: 10.5
+  float_current: 1.0  # 6.0
+  full_voltage: 27.2  # 13.6
+  boost_voltage: 28.8  # 14.4
+  empty_voltage: 11.0  # 10.5
 
 energy: False
 
@@ -37,7 +37,7 @@ trigger:
   command:
     - 'shutdown'
     - 'now'
-  voltage: 10.7
+  voltage: 20.0  # 10.7
 
 mqtt:
   hostname: '192.168.1.1'
