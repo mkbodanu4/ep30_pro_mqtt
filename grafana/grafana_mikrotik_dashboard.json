@@ -314,6 +314,99 @@
           },
           "custom": {
             "axisCenteredZero": false,
+            "axisColorMode": "series",
+            "axisLabel": "rtt",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 18,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "KOINA_1Vz"
+          },
+          "query": "from(bucket: \"inverter\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"snmp\")\n  |> filter(fn: (r) => r[\"_field\"] == \"internet-rtt\")\n  |> filter(fn: (r) => r[\"agent_host\"] == \"192.168.17.1\")\n  |> filter(fn: (r) => r[\"host\"] == \"minikeep\")\n  |> filter(fn: (r) => r[\"hostname\"] == \"MikroTik\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Rtt",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "KOINA_1Vz"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
@@ -549,9 +642,9 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "_monitoring",
-          "value": "_monitoring"
+          "selected": true,
+          "text": "network",
+          "value": "network"
         },
         "datasource": {
           "type": "influxdb",
@@ -573,7 +666,7 @@
       {
         "current": {
           "isNone": true,
-          "selected": false,
+          "selected": true,
           "text": "None",
           "value": ""
         },
@@ -622,7 +715,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -636,6 +729,6 @@
   "timezone": "",
   "title": "MikroTik",
   "uid": "d9AYk837z",
-  "version": 16,
+  "version": 17,
   "weekStart": ""
 }
