@@ -28,12 +28,12 @@ def publish_multiple(msgs):
 
 
 def add_sensor_data(id, value):
-    if backend == 'mqtt':
+    if configuration['backend'] == 'mqtt':
         sensors_data.append({
             'topic': topic(str(id) + '/state'),
             'payload': str(value)
         })
-    elif backend == 'influx':
+    elif configuration['backend'] == 'influx':
         metric.field(name, float(value))
 
 
@@ -358,8 +358,15 @@ length = 26
 
 # All magic starts here
 
+if not isfile('configuration.yaml'):
+    print("Configuration file missing")
+    exit(1)
+
+with open("configuration.yaml", 'r') as stream:
+    configuration = safe_load(stream)
+
 client = ModbusSerialClient(
-    port='/dev/ttyUSB0',
+    port=configuration['serial']['port'],
     baudrate=baud,
     parity=parity,
     stopbits=stopbits,
@@ -371,18 +378,8 @@ if not client.is_socket_open():
     print("Modbus not connected")
     exit(1)
 
-if not isfile('configuration.yaml'):
-    print("Configuration file missing")
-    exit(1)
-
-with open("configuration.yaml", 'r') as stream:
-    configuration = safe_load(stream)
-
-backend = configuration['backend']
-sleep_time = configuration['run']['sleep_time']
 sensors_definitions = []
-
-if backend == 'mqtt':
+if configuration['backend'] == 'mqtt':
     hostname = configuration['mqtt']['hostname']
     auth = None
     if configuration['mqtt']['username'] and configuration['mqtt']['password']:
@@ -412,7 +409,7 @@ if backend == 'mqtt':
         })
 
         publish_multiple(sensors_definitions)
-elif backend == 'influx':
+elif configuration['backend'] == 'influx':
     hostname = configuration['influx']['hostname']
     org = configuration['influx']['org']
     token = configuration['influx']['token']
@@ -427,7 +424,7 @@ elif backend == 'influx':
 while True:
     sensors_data = []
 
-    if backend == 'influx':
+    if configuration['backend'] == 'influx':
         metric = Point('Modbus').tag('Device', 'EP3000')
 
     result = client.read_holding_registers(address, length, slave=slave_id)
@@ -479,13 +476,13 @@ while True:
 
         add_sensor_data(sensor['id'], get_sensor_data(sensor))
 
-    if backend == 'mqtt':
+    if configuration['backend'] == 'mqtt':
         publish_multiple(sensors_data)
-    elif backend == 'influx':
+    elif configuration['backend'] == 'influx':
         metric.time(timestamp)
         try:
             write_api.write(bucket=bucket, record=metric)
         except Exception as e:
             print(e)
 
-    sleep(sleep_time)
+    sleep(configuration['run']['sleep_time'])

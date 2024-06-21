@@ -4,6 +4,20 @@ serial:
 run:
   sleep_time: 2
 
+# possible values: mqtt, influx
+backend: mqtt
+
+mqtt:
+  hostname: '192.168.1.1'
+  username: 'usr'
+  password: 'passwd'
+
+influx:
+  hostname: 'http://192.168.1.1:8086'
+  bucket:   ''
+  token:    ''
+  org:      ''
+
 discharge_config:
   full_voltage: 25.6  # 12.8
   empty_voltage: 11.0  # 10.5
@@ -16,36 +30,9 @@ charge_config:
 
 energy: False
 
-sensors:
-  - 'battery_level'
-  - 'battery_voltage'
-  - 'charging_current'
-  - 'input_voltage'
-  - 'load_current'
-  - 'load_level'
-  - 'output_power'
-  - 'output_voltage'
-  - 'ups_temperature'
-
-debug: off
-
-# possible values: mqtt, influx
-backend: mqtt
-
 trigger:
   enable: True
   command:
     - 'shutdown'
     - 'now'
   voltage: 20.0  # 10.7
-
-mqtt:
-  hostname: '192.168.1.1'
-  username: 'usr'
-  password: 'passwd'
-
-influx:
-  hostname: 'http://192.168.1.1:8086'
-  bucket:   ''
-  token:    ''
-  org:      ''
