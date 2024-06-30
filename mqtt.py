@@ -667,20 +667,20 @@ while True:
         r_charged_capacity = r.get("charged_capacity")
 
         if r_timestamp is not None:
-            time_delta = round(time.time(), 3) - float(str(r_timestamp))
+            time_delta = round(time.time(), 3) - float(bytes(r_timestamp))
             if time_delta < sleep_time*10:
                 if is_charging == "OFF":
-                    r_battery_power = float(str(r_battery_voltage)) * float(str(r_battery_current))
+                    r_battery_power = float(bytes(r_battery_voltage)) * float(bytes(r_battery_current))
                     battery_power = battery_current * battery_voltage
                     median_power = (r_battery_power + battery_power) / 2
-                    used_capacity = float(str(r_used_capacity)) + round(median_power * (time_delta / 3600), 1)
+                    used_capacity = float(bytes(r_used_capacity)) + round(median_power * (time_delta / 3600), 1)
 
                     charged_capacity = 0.0
                 else:
-                    r_charging_power = float(str(r_battery_voltage)) * float(str(r_charging_current))
+                    r_charging_power = float(bytes(r_battery_voltage)) * float(bytes(r_charging_current))
                     charging_power = charging_current * battery_voltage
                     median_power = (r_charging_power + charging_power) / 2
-                    charged_capacity = float(str(r_charged_capacity)) + round(median_power * (time_delta / 3600), 1)
+                    charged_capacity = float(bytes(r_charged_capacity)) + round(median_power * (time_delta / 3600), 1)
 
                     used_capacity = 0.0
 
@@ -694,6 +694,11 @@ while True:
         sensors_data.append({
             'topic': topic('used_capacity/state'),
             'payload': format(round(used_capacity, 1), '.1f')
+        })
+
+        sensors_data.append({
+            'topic': topic('charged_capacity/state'),
+            'payload': format(round(charged_capacity, 1), '.1f')
         })
     except:
         print("Redis error")
