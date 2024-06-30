@@ -549,6 +549,8 @@ while True:
         charging_data = charging_data.decode("utf-8").strip()
         verbose_print(charging_data)
 
+        charging_data = charging_data.split(" ")
+
         charging_value1 = float(int(charging_data[0], 16))
         sensors_data.append({
             'topic': topic('charging_value1/state'),
@@ -573,7 +575,7 @@ while True:
             'payload': format(round(charging_value4, 1), '.1f')
         })
 
-        charging_current = charging_data[0:2]
+        charging_current = charging_data[0]
         if charging_current:
             charging_current = float(int(charging_current, 16))
 
