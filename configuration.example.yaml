@@ -3,6 +3,7 @@ serial:
 
 run:
   sleep_time: 2
+  calculation_trusted_delay: 60
 
 # possible values: mqtt, influx
 backend: mqtt

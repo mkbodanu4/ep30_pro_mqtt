@@ -668,7 +668,7 @@ while True:
 
         if r_timestamp is not None:
             time_delta = round(time.time(), 3) - float(bytes(r_timestamp))
-            if time_delta < sleep_time * 5:
+            if time_delta <= int(configuration['run']['calculation_trusted_delay']):
                 if is_charging == "OFF":
                     r_battery_power = float(bytes(r_battery_voltage)) * float(bytes(r_battery_current))
                     battery_power = battery_current * battery_voltage
