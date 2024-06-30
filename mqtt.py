@@ -275,6 +275,16 @@ while True:
             })
         },
         {
+            'topic': topic('charger_battery_voltage/config'),
+            'payload': json.dumps({
+                "name": name("Charger Battery Voltage"),
+                "device_class": "voltage",
+                "unit_of_measurement": "V",
+                "state_class": "measurement",
+                "state_topic": topic('charger_battery_voltage/state'),
+            })
+        },
+        {
             'topic': topic('charging_value1/config'),
             'payload': json.dumps({
                 "name": name("Charger Value 1"),
@@ -587,17 +597,20 @@ while True:
             'payload': format(round(charging_value4, 1), '.1f')
         })
 
-        charging_current = charging_data[0]
-        if charging_current:
-            charging_current = float(int(charging_current, 16))
+        charging_current = float(int(charging_data[0], 16))
+        if is_charging == "OFF":
+            charging_current = 0.0
+        sensors_data.append({
+            'topic': topic('charging_current/state'),
+            'payload': format(round(charging_current, 1), '.1f')
+        })
 
-            if is_charging == "OFF":
-                charging_current = 0.0
+        charger_battery_voltage = (13.6 * float(int(charging_data[3], 16))) / 200
+        sensors_data.append({
+            'topic': topic('charger_battery_voltage/state'),
+            'payload': format(round(charger_battery_voltage, 3), '.3f')
+        })
 
-            sensors_data.append({
-                'topic': topic('charging_current/state'),
-                'payload': format(round(charging_current, 1), '.1f')
-            })
 
     time.sleep(.1)
 
