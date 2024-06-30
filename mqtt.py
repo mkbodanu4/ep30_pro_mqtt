@@ -668,7 +668,7 @@ while True:
 
         if r_timestamp is not None:
             time_delta = round(time.time(), 3) - float(bytes(r_timestamp))
-            if time_delta < sleep_time*10:
+            if time_delta < sleep_time * 5:
                 if is_charging == "OFF":
                     r_battery_power = float(bytes(r_battery_voltage)) * float(bytes(r_battery_current))
                     battery_power = battery_current * battery_voltage
@@ -683,6 +683,10 @@ while True:
                     charged_capacity = float(bytes(r_charged_capacity)) + round(median_power * (time_delta / 3600), 1)
 
                     used_capacity = 0.0
+            else:
+                # Too long pause to be trusted
+                charged_capacity = 0.0
+                used_capacity = 0.0
 
         r.set('timestamp', round(time.time(), 3))
         r.set('battery_current', battery_current)
