@@ -673,14 +673,14 @@ while True:
                     r_battery_power = float(bytes(r_battery_voltage)) * float(bytes(r_battery_current))
                     battery_power = battery_current * battery_voltage
                     median_power = (r_battery_power + battery_power) / 2
-                    used_capacity = float(bytes(r_used_capacity)) + round(median_power * (time_delta / 3600), 1)
+                    used_capacity = float(bytes(r_used_capacity)) + (median_power * (time_delta / 3600))
 
                     charged_capacity = 0.0
                 else:
                     r_charging_power = float(bytes(r_battery_voltage)) * float(bytes(r_charging_current))
                     charging_power = charging_current * battery_voltage
                     median_power = (r_charging_power + charging_power) / 2
-                    charged_capacity = float(bytes(r_charged_capacity)) + round(median_power * (time_delta / 3600), 1)
+                    charged_capacity = float(bytes(r_charged_capacity)) + (median_power * (time_delta / 3600))
 
                     used_capacity = 0.0
             else:
