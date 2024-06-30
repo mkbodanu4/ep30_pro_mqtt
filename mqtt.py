@@ -271,6 +271,38 @@ while True:
             })
         },
         {
+            'topic': topic('charging_value1/config'),
+            'payload': json.dumps({
+                "name": name("Charger Value 1"),
+                "state_class": "measurement",
+                "state_topic": topic('charging_value1/state'),
+            })
+        },
+        {
+            'topic': topic('charging_value2/config'),
+            'payload': json.dumps({
+                "name": name("Charger Value 2"),
+                "state_class": "measurement",
+                "state_topic": topic('charging_value2/state'),
+            })
+        },
+        {
+            'topic': topic('charging_value3/config'),
+            'payload': json.dumps({
+                "name": name("Charger Value 3"),
+                "state_class": "measurement",
+                "state_topic": topic('charging_value3/state'),
+            })
+        },
+        {
+            'topic': topic('charging_value4/config'),
+            'payload': json.dumps({
+                "name": name("Charger Value 4"),
+                "state_class": "measurement",
+                "state_topic": topic('charging_value4/state'),
+            })
+        },
+        {
             'topic': topic('battery_level/config'),
             'payload': json.dumps({
                 "name": name("Battery Level"),
@@ -516,6 +548,30 @@ while True:
     if charging_data:
         charging_data = charging_data.decode("utf-8").strip()
         verbose_print(charging_data)
+
+        charging_value1 = float(int(charging_data[0], 16))
+        sensors_data.append({
+            'topic': topic('charging_value1/state'),
+            'payload': format(round(charging_value1, 1), '.1f')
+        })
+
+        charging_value2 = float(int(charging_data[1], 16))
+        sensors_data.append({
+            'topic': topic('charging_value2/state'),
+            'payload': format(round(charging_value2, 1), '.1f')
+        })
+
+        charging_value3 = float(int(charging_data[2], 16))
+        sensors_data.append({
+            'topic': topic('charging_value3/state'),
+            'payload': format(round(charging_value3, 1), '.1f')
+        })
+
+        charging_value4 = float(int(charging_data[3], 16))
+        sensors_data.append({
+            'topic': topic('charging_value4/state'),
+            'payload': format(round(charging_value4, 1), '.1f')
+        })
 
         charging_current = charging_data[0:2]
         if charging_current:
