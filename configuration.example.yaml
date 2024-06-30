@@ -18,6 +18,14 @@ influx:
   token:    ''
   org:      ''
 
+redis:
+  hostname: 'localhost'
+  port: 6379
+
+inverter:
+  idle_current: 4.5
+  efficiency: 0.85
+
 discharge_config:
   full_voltage: 25.6  # 12.8
   empty_voltage: 11.0  # 10.5
@@ -27,8 +35,6 @@ charge_config:
   full_voltage: 27.2  # 13.6
   boost_voltage: 28.8  # 14.4
   empty_voltage: 11.0  # 10.5
-
-energy: False
 
 trigger:
   enable: True

@@ -5,6 +5,7 @@ import json
 import yaml
 import argparse
 import subprocess
+import redis
 
 with open("configuration.yaml", 'r') as stream:
     configuration = yaml.safe_load(stream)
@@ -43,8 +44,11 @@ charging_current = None
 
 # Calculated sensors
 battery_level = None
-output_power = None
+battery_current = 0.0
+output_power = 0.0
 input_power = None
+used_capacity = 0.0
+charged_capacity = 0.0
 
 hostname = configuration['mqtt']['hostname']
 auth = None
@@ -313,6 +317,16 @@ while True:
             })
         },
         {
+            'topic': topic('battery_current/config'),
+            'payload': json.dumps({
+                "name": name("Battery Current"),
+                "device_class": "current",
+                "unit_of_measurement": "A",
+                "state_class": "measurement",
+                "state_topic": topic('battery_current/state'),
+            })
+        },
+        {
             'topic': topic('output_power/config'),
             'payload': json.dumps({
                 "name": name("Output Power"),
@@ -332,29 +346,27 @@ while True:
                 "state_topic": topic('input_power/state'),
             })
         },
+        {
+            'topic': topic('used_capacity/config'),
+            'payload': json.dumps({
+                "name": name("Used Capacity"),
+                "device_class": "energy",
+                "unit_of_measurement": "Wh",
+                "state_class": "total_increasing",
+                "state_topic": topic('used_capacity/state'),
+            })
+        },
+        {
+            'topic': topic('charged_capacity/config'),
+            'payload': json.dumps({
+                "name": name("Charged Capacity"),
+                "device_class": "energy_storage",
+                "unit_of_measurement": "Wh",
+                "state_class": "total_increasing",
+                "state_topic": topic('charged_capacity/state'),
+            })
+        }
     ]
-
-    if configuration['energy']:
-        sensors_definitions.append({
-            'topic': topic('output_energy/config'),
-            'payload': json.dumps({
-                "name": name("Output Energy"),
-                "device_class": "energy",
-                "unit_of_measurement": "kWh",
-                "state_class": "total_increasing",
-                "state_topic": topic('output_energy/state'),
-            })
-        })
-        sensors_definitions.append({
-            'topic': topic('input_energy/config'),
-            'payload': json.dumps({
-                "name": name("Input Energy"),
-                "device_class": "energy",
-                "unit_of_measurement": "kWh",
-                "state_class": "total_increasing",
-                "state_topic": topic('input_energy/state'),
-            })
-        })
 
     publish_multiple(sensors_definitions)
 
@@ -593,25 +605,41 @@ while True:
 
     # Calculating sensor values
 
+    # Input power during charging
+    if battery_voltage is not None and charging_current is not None and is_charging == "ON":
+        input_power = battery_voltage * charging_current
+    else:
+        input_power = 0.0
+
+    sensors_data.append({
+        'topic': topic('input_power/state'),
+        'payload': format(round(input_power, 1), '.1f')
+    })
+
+    # Output power
     if rating_current is not None and load_level is not None and output_voltage is not None:
         output_power = rating_current * (float(load_level) / 100.0) * output_voltage
+    else:
+        output_power = 0.0
 
-        sensors_data.append({
-            'topic': topic('output_power/state'),
-            'payload': format(round(output_power, 1), '.1f')
-        })
+    sensors_data.append({
+        'topic': topic('output_power/state'),
+        'payload': format(round(output_power, 1), '.1f')
+    })
 
+    # Current from battery in BatteryPriority mode
+    if battery_voltage is not None and working_status == "BatteryPriority":
+        battery_current = float(configuration['inverter']['idle_current']) + (battery_voltage * (output_power / float(configuration['inverter']['efficiency'])))
+    else:
+        battery_current = 0.0
+
+    sensors_data.append({
+        'topic': topic('battery_current/state'),
+        'payload': format(round(battery_current, 1), '.1f')
+    })
+
+    # Batter level
     if battery_voltage is not None and charging_current is not None:
-        if is_charging == "ON":
-            input_power = battery_voltage * charging_current
-        else:
-            input_power = 0.0
-
-        sensors_data.append({
-            'topic': topic('input_power/state'),
-            'payload': format(round(input_power, 1), '.1f')
-        })
-
         if is_charging == "ON" and charging_current > float(configuration['charge_config']['float_current']):
             if battery_voltage > float(configuration['charge_config']['full_voltage']):
                 battery_level = 95.0 + (battery_voltage - float(configuration['charge_config']['full_voltage'])) / (float(configuration['charge_config']['boost_voltage']) - float(configuration['charge_config']['full_voltage'])) * 5.0
@@ -628,52 +656,47 @@ while True:
             'payload': format(round(battery_level, 1), '.1f')
         })
 
-    if configuration['energy']:
-        with open('energy.json') as energy_file:
-            energy = json.loads(energy_file.read())
+    try:
+        r = redis.Redis(host=configuration['redis']['hostname'], port=configuration['redis']['port'], db=0)
 
-        if output_power is not None:
-            if energy['output']['updated'] is not None:
-                current_time = round(time.time(), 3)
-                delta = current_time - energy['output']['updated']
+        r_timestamp = r.get("timestamp")
+        r_battery_current = r.get("battery_current")
+        r_charging_current = r.get("charging_current")
+        r_battery_voltage = r.get("battery_voltage")
+        r_used_capacity = r.get("used_capacity")
+        r_charged_capacity = r.get("charged_capacity")
 
-                if delta <= (sleep_time * 10):
-                    energy['output']['value'] += round(output_power * (delta / 3600), 3)
-                    energy['output']['updated'] = current_time
+        if r_timestamp is not None:
+            time_delta = round(time.time(), 3) - float(str(r_timestamp))
+            if time_delta < sleep_time*10:
+                if is_charging == "OFF":
+                    r_battery_power = float(str(r_battery_voltage)) * float(str(r_battery_current))
+                    battery_power = battery_current * battery_voltage
+                    median_power = (r_battery_power + battery_power) / 2
+                    used_capacity = float(str(r_used_capacity)) + round(median_power * (time_delta / 3600), 1)
+
+                    charged_capacity = 0.0
                 else:
-                    energy['output']['updated'] = round(time.time(), 3)
-            else:
-                energy['output']['updated'] = round(time.time(), 3)
-        else:
-            energy['output']['updated'] = round(time.time(), 3)
+                    r_charging_power = float(str(r_battery_voltage)) * float(str(r_charging_current))
+                    charging_power = charging_current * battery_voltage
+                    median_power = (r_charging_power + charging_power) / 2
+                    charged_capacity = float(str(r_charged_capacity)) + round(median_power * (time_delta / 3600), 1)
+
+                    used_capacity = 0.0
+
+        r.set('timestamp', round(time.time(), 3))
+        r.set('battery_current', battery_current)
+        r.set('charging_current', charging_current)
+        r.set('battery_voltage', battery_voltage)
+        r.set('used_capacity', used_capacity)
+        r.set('charged_capacity', charged_capacity)
 
         sensors_data.append({
-            'topic': topic('output_energy/state'),
-            'payload': format(round(energy['output']['value']) / 1000, '.2f')
+            'topic': topic('used_capacity/state'),
+            'payload': format(round(used_capacity, 1), '.1f')
         })
-
-        if input_power is not None:
-            if energy['input']['updated'] is not None:
-                current_time = round(time.time(), 3)
-                delta = current_time - energy['input']['updated']
-
-                if delta <= (sleep_time * 10):
-                    energy['input']['value'] += round(input_power * (delta / 3600), 3)
-                    energy['input']['updated'] = current_time
-                else:
-                    energy['input']['updated'] = round(time.time(), 3)
-            else:
-                energy['input']['updated'] = round(time.time(), 3)
-        else:
-            energy['input']['updated'] = round(time.time(), 3)
-
-        sensors_data.append({
-            'topic': topic('input_energy/state'),
-            'payload': format(round(energy['input']['value']) / 1000, '.2f')
-        })
-
-        with open('energy.json', 'w') as energy_file:
-            json.dump(energy, energy_file)
+    except:
+        print("Redis error")
 
     publish_multiple(sensors_data)
 
