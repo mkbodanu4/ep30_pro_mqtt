@@ -27,6 +27,9 @@ inverter:
   idle_power: 50
   efficiency: 0.95
 
+adc:
+  battery_voltage_max: 17.35
+
 discharge_config:
   full_voltage: 25.6  # 12.8
   empty_voltage: 11.0  # 10.5

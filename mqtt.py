@@ -605,12 +605,11 @@ while True:
             'payload': format(round(charging_current, 1), '.1f')
         })
 
-        charger_battery_voltage = (13.6 * float(int(charging_data[3], 16))) / 200
+        charger_battery_voltage = (float(configuration['adc']['battery_voltage_max']) * float(int(charging_data[3], 16))) / 255
         sensors_data.append({
             'topic': topic('charger_battery_voltage/state'),
-            'payload': format(round(charger_battery_voltage, 3), '.3f')
+            'payload': format(round(charger_battery_voltage, 2), '.2f')
         })
-
 
     time.sleep(.1)
 
