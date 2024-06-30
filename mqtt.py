@@ -628,8 +628,9 @@ while True:
     })
 
     # Current from battery in BatteryPriority mode
-    if battery_voltage is not None and working_status == "BatteryPriority":
-        battery_current = float(configuration['inverter']['idle_current']) + (battery_voltage * (output_power / float(configuration['inverter']['efficiency'])))
+    if battery_voltage is not None and working_status == 30:
+        battery_current = float((configuration['inverter']['idle_power'] + (output_power / float(configuration['inverter']['efficiency']))) / battery_voltage)
+        print(battery_current)
     else:
         battery_current = 0.0
 
