@@ -378,7 +378,6 @@ if not client.is_socket_open():
     print("Modbus not connected")
     exit(1)
 
-sensors_definitions = []
 if configuration['backend'] == 'mqtt':
     hostname = configuration['mqtt']['hostname']
     auth = None
@@ -387,28 +386,6 @@ if configuration['backend'] == 'mqtt':
             'username': configuration['mqtt']['username'],
             'password': configuration['mqtt']['password']
         }
-
-    for sensor in sensors:
-        payload = {
-            "name": name(sensor['name']),
-            "state_topic": topic(sensor['id'] + '/state'),
-        }
-
-        if "device_class" in sensor:
-            payload["device_class"] = sensor['device_class']
-
-        if "unit_of_measurement" in sensor:
-            payload["unit_of_measurement"] = sensor['unit_of_measurement']
-
-        if "state_class" in sensor:
-            payload["state_class"] = sensor['state_class']
-
-        sensors_definitions.append({
-            'topic': topic(sensor['id'] + '/config'),
-            'payload': dumps(payload)
-        })
-
-        publish_multiple(sensors_definitions)
 elif configuration['backend'] == 'influx':
     hostname = configuration['influx']['hostname']
     org = configuration['influx']['org']
@@ -422,6 +399,34 @@ elif configuration['backend'] == 'influx':
         print(e)
 
 while True:
+
+    if configuration['backend'] == 'mqtt':
+        sensors_definitions = []
+
+        for sensor in sensors:
+            payload = {
+                "name": name(sensor['name']),
+                "state_topic": topic(sensor['id'] + '/state'),
+            }
+
+            if "device_class" in sensor:
+                payload["device_class"] = sensor['device_class']
+
+            if "unit_of_measurement" in sensor:
+                payload["unit_of_measurement"] = sensor['unit_of_measurement']
+
+            if "state_class" in sensor:
+                payload["state_class"] = sensor['state_class']
+
+            sensors_definitions.append({
+                'topic': topic(sensor['id'] + '/config'),
+                'payload': dumps(payload)
+            })
+
+        publish_multiple(sensors_definitions)
+
+    sleep(configuration['run']['sleep_time'])
+
     sensors_data = []
 
     if configuration['backend'] == 'influx':
@@ -485,4 +490,4 @@ while True:
         except Exception as e:
             print(e)
 
-    sleep(configuration['run']['sleep_time'])
+    sleep(.1)
