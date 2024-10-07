@@ -19,14 +19,6 @@ influx:
   token:    ''
   org:      ''
 
-redis:
-  hostname: 'localhost'
-  port: 6379
-
-inverter:
-  idle_power: 50
-  efficiency: 0.95
-
 adc:
   battery_voltage_max: 17.35
 
