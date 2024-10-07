@@ -3,4 +3,3 @@ pymodbus
 influxdb-client
 pyyaml
 pyserial
-redis

@@ -1,0 +1,118 @@
+icon: hass:car-battery
+path: ep30
+title: Інвертор
+cards:
+  - type: entities
+    entities:
+      - entity: sensor.ep30_input_voltage
+        name: Вхідна Напруга
+      - entity: sensor.ep30_fault_voltage
+        name: Остання Зміна Напруги
+      - entity: sensor.ep30_output_voltage
+        name: Вихідна Напруга
+      - entity: sensor.ep30_output_frequency
+        name: Вихідна Частота
+      - entity: binary_sensor.ep30_utility_fail_immediate
+        name: Мережа
+      - entity: sensor.ep30_fault_state
+        name: Статус
+      - entity: binary_sensor.ep30_ups_failed
+        name: Стан
+      - entity: sensor.ep30_working_status
+        name: Режим
+      - entity: sensor.ep30_load_level
+        name: Навантаження
+        icon: mdi:transmission-tower-export
+      - entity: sensor.ep30_output_power
+        name: Потужність Навантаження
+    title: Інвертор
+    state_color: true
+    show_header_toggle: false
+  - type: entities
+    entities:
+      - entity: sensor.ep30_battery_level
+        name: Заряд Акумулятора
+      - entity: sensor.ep30_battery_voltage
+        name: Напруга Акумулятора
+      - entity: sensor.ep30_charger_battery_voltage
+        name: Напруга Акумулятора (Х)
+      - entity: sensor.ep30_charging_current
+        name: Струм Заряджання
+      - entity: binary_sensor.ep30_charger_action
+        name: Стан Заряджання
+      - entity: binary_sensor.ep30_battery_low
+        name: Стан батареї
+      - entity: sensor.ep30_charger_value_2
+        name: Потужність заряджання (у/о)
+      - entity: sensor.ep30_charger_value_3
+        name: "% потужності заряджання"
+    show_header_toggle: false
+    state_color: true
+    title: Зарядне
+  - type: gauge
+    entity: sensor.ep30_input_voltage
+    min: 178
+    max: 275
+    severity:
+      green: 207
+      yellow: 186
+      red: 255
+    name: Вхідна Напруга
+    needle: true
+  - type: gauge
+    entity: sensor.ep30_output_power
+    name: Вихідна Потужність
+    max: 1500
+    min: 0
+    needle: true
+    severity:
+      green: 0
+      yellow: 250
+      red: 1000
+  - type: entities
+    entities:
+      - entity: sensor.ep30_rating_voltage
+        name: Номінальна Напруга Мережі
+      - entity: sensor.ep30_rating_current
+        name: Номінальний Струм
+      - entity: sensor.ep30_nominal_frequency
+        name: Номінальна Частота
+      - entity: sensor.ep30_nominal_battery_voltage
+        name: Номінальна Напруга Акумулятора
+      - entity: binary_sensor.ep30_beeper_on
+        name: Пищалка
+      - entity: binary_sensor.ep30_shutdown_active
+        name: Заплановане Вимкнення
+      - entity: binary_sensor.ep30_test_in_progress
+        name: Тестування
+      - entity: binary_sensor.ep30_type_is_line_interactive
+        name: Лінійно-Інтерактивний Режим
+    title: Інформація
+    state_color: true
+    show_header_toggle: false
+  - type: gauge
+    entity: sensor.ep30_battery_level
+    needle: true
+    severity:
+      green: 60
+      yellow: 20
+      red: 0
+    name: Заряд
+    max: 100
+  - type: sensor
+    entity: sensor.ep30_temperature
+    graph: line
+    name: Температура Інвертора
+    detail: 2
+badges:
+  - type: entity
+    entity: sensor.ep30_input_voltage
+    show_entity_picture: false
+    name: Вхідна напруга
+  - type: entity
+    entity: sensor.ep30_battery_voltage
+    name: Напруга акумулятора
+    icon: mdi:car-battery
+  - type: entity
+    entity: sensor.ep30_temperature
+    name: Температура
