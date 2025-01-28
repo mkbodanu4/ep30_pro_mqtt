@@ -314,7 +314,7 @@ if not client.is_socket_open():
     print("not connected")
     exit(1)
 
-result = client.read_holding_registers(address, length, slave=id)
+result = client.read_holding_registers(address=address, count=length, slave=id)
 
 
 for sensor in sensors:

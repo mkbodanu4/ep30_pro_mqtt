@@ -1,5 +1,5 @@
-paho-mqtt
-pymodbus
-influxdb-client
+paho-mqtt==1.6.1
+pymodbus==3.8.3
+influxdb-client==1.44.0
 pyyaml
-pyserial
+pyserial==3.5
