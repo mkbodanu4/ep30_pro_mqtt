@@ -146,7 +146,7 @@ sensors = [
         'remoteId': 'GridFrequency',
         'id': 'input_frequency',
         'name': 'Grid Frequency',
-        'unit_of_measurement': 'HZ',
+        'unit_of_measurement': 'Hz',
         'state_class': 'measurement',
         'device_class': 'frequency'
     },
@@ -166,7 +166,7 @@ sensors = [
         'remoteId': 'OutputFrequency',
         'id': 'output_frequency',
         'name': 'Output Frequency',
-        'unit_of_measurement': 'HZ',
+        'unit_of_measurement': 'Hz',
         'state_class': 'measurement',
         'device_class': 'frequency'
     },
