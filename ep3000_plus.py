@@ -431,7 +431,7 @@ while True:
     if configuration['backend'] == 'influx':
         metric = Point('Modbus').tag('Device', 'EP3000')
 
-    result = client.read_holding_registers(address=address, count=length, slave=slave_id)
+    result = client.read_holding_registers(address=address, count=length, device_id=slave_id)
     timestamp = time_ns()
 
     for sensor in sensors:
